@@ -1,2 +1,5 @@
 # 3d-Annotated-Wireframe-Generator
-Project made for generating synthetic data 
+Project for generating synthetic data. 
+With those wireframes we can generate controled stable diffusion images.
+Those images can then be used for fine-tuning our model. 
+
