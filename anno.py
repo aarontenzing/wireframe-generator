@@ -52,7 +52,7 @@ class App:
                 elif (event.type == KEYDOWN) and (event.key == K_RETURN):
                     # New size of rectangle (scale)
                     rect_name += 1
-                    self.rectangle.set_scale(random.uniform(1,5), random.uniform(1,5), random.uniform(1,5))
+                    self.rectangle.set_scale(random.uniform(0.1,3), random.uniform(0.1,3), random.uniform(0.1,3))
                     print(self.rectangle.width, self.rectangle.depth, self.rectangle.height)
                 
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -83,7 +83,8 @@ class RectangleMesh:
         self.position= np.array(position, dtype=np.float32) # position
     
     def draw_rect(self):
-        
+        glEnable(GL_LINE_SMOOTH)
+        glLineWidth(3)
         glBegin(GL_LINES)
         glColor3f(0.0, 0.0, 0.0)  
         glVertex3f(self.width, self.height, self.depth) # front top right
@@ -124,7 +125,7 @@ class RectangleMesh:
         glVertex3f(-self.width, self.height, self.depth) # front top left
         glVertex3f(-self.width, self.height, -self.depth) # back top left
         glEnd()
-        
+       
     def random_pos(self):
 
         # Generate random angles for rotation
