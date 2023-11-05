@@ -5,29 +5,33 @@ from OpenGL.GLU import *
 import numpy as np
 import random
 
-
 class App:
 
     def __init__(self):
 
         # Initialize pygame for GUI
         pg.init() 
-        self.display = (800,600)
+        self.display = (1280,720)
         self.screen = pg.display.set_mode(self.display, pg.OPENGL|pg.DOUBLEBUF) # tell pygame we run OPENGL & DOUBLEBUFFERING, one frame vis & one drawing
         pg.display.set_caption("Wireframe generator")
         
         # Initialize OpenGL
         glClearColor(1,1,1,1)
         gluPerspective(45, self.display[0]/self.display[1], 0.1, 50)
-        self.rectangle = RectangleMesh(1, 1, 1, [1,1,1], [0,1,0], [0,0,-15])   
-        self.rectangle.draw_rect()
+        # Initial camera position
+        
+        self.rectangle = RectangleMesh(1, 1, 1, [1,1,1], [0,1,0], [0,0,-10])   
+        #self.rectangle.draw_rect()
+        self.rectangle.draw_wired_rect()
         glTranslatef(self.rectangle.position[0], self.rectangle.position[1], self.rectangle.position[2])   
+        self.draw_axes()
         self.mainLoop()
 
     def mainLoop(self):
-        rect_name = 0
-        x = 0
-        img_count = 0
+        rect_name = 0  
+        img_number = 0 # counts the rectangle that is been shown
+        img_shot = 0 #counts how many screenshots were taken
+        axes = 0
         running = True
         while(running):
             # Check for events
@@ -35,19 +39,25 @@ class App:
                 
                 if (event.type == pg.QUIT):
                     running = False
-                    
+                
+                elif (event.type == KEYDOWN) and (event.key == K_a):
+                    # draw axes
+                    axes = not axes
+                   
                 elif (event.type == KEYDOWN) and (event.key == K_RIGHT):
                     # random position of rectangle
+                    
                     self.rectangle.random_pos()
-                    if (rect_name == x):
-                        self.save_image(rect_name, img_count)
-                        img_count += 1
+                    
+                    if (rect_name == img_number):
+                        self.save_image(rect_name, img_shot)
+                        img_shot += 1
                     else:
-                        x += 1  
-                        rect_name = x   
-                        img_count = 0
-                        self.save_image(rect_name, img_count)
-                        img_count += 1    
+                        img_number += 1  
+                        rect_name = img_number   
+                        img_shot = 0
+                        self.save_image(rect_name, img_shot)
+                        img_shot += 1    
 
                 elif (event.type == KEYDOWN) and (event.key == K_RETURN):
                     # New size of rectangle (scale)
@@ -56,7 +66,10 @@ class App:
                     print(self.rectangle.width, self.rectangle.depth, self.rectangle.height)
                 
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-                self.rectangle.draw_rect()
+                self.rectangle.draw_wired_rect()
+                if (axes):
+                    self.draw_axes()
+                    
                 pg.display.flip()
                 pg.time.wait(60)
 
@@ -70,6 +83,44 @@ class App:
         image = pg.image.frombuffer(pixels, (self.display[0], self.display[1]), 'RGB') # read pixels from the OpenGL buffer
         name = "wireframes\\img" + str(rectangle_number) + "_" + str(count) + ".png"
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
+    
+    def lighting_setup(self):
+        glEnable(GL_DEPTH_TEST)
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
+
+        glLightfv(GL_LIGHT0, GL_POSITION, (-2, -2, 2, 1))  # Set light position
+
+        ambient_light = (0.2, 0.2, 0.2, 1)
+        diffuse_light = (0.8, 0.8, 0.8, 1)
+        specular_light = (1.0, 1.0, 1.0, 1)
+
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light)
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light)
+        glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light)
+        
+    def draw_axes(self):
+        # X axis (red)
+        glBegin(GL_LINES)
+        glColor3f(1, 0, 0)
+        glVertex3f(0, 0, 0)
+        glVertex3f(5, 0, 0)
+        glEnd()
+
+        # Y axis (green)
+        glBegin(GL_LINES)
+        glColor3f(0, 1, 0)
+        glVertex3f(0, 0, 0)
+        glVertex3f(0, 5, 0)
+        glEnd()
+
+        # Z axis (blue)
+        glBegin(GL_LINES)
+        glColor3f(0, 0, 1)
+        glVertex3f(0, 0, 0)
+        glVertex3f(0, 0, 5)
+        glEnd()
+
         
 class RectangleMesh:
 
@@ -83,8 +134,54 @@ class RectangleMesh:
         self.position= np.array(position, dtype=np.float32) # position
     
     def draw_rect(self):
-        glEnable(GL_LINE_SMOOTH)
+        
+         # Set material properties
+        glBegin(GL_QUADS)
+        # front plane
+        glVertex3f(self.width, self.height, self.depth) # front top right
+        glVertex3f(-self.width, self.height, self.depth) # front top left
+        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
+        glVertex3f(self.width, -self.height, self.depth) # front bottom right
+        
+        # Back plane
+        glVertex3f(self.width, self.height, -self.depth) # back top right
+        glVertex3f(-self.width, self.height, -self.depth) # back top left
+        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
+        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
+         
+        # left    
+        glVertex3f(-self.width, self.height, self.depth) # front top left
+        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
+        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
+        glVertex3f(-self.width, self.height, -self.depth) # back top left
+        
+        # right
+        glVertex3f(self.width, self.height, self.depth) # front top right
+        glVertex3f(self.width, -self.height, self.depth) # front bottom right
+        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
+        glVertex3f(self.width, self.height, -self.depth) # back top right
+        
+        # top
+        glVertex3f(-self.width, self.height, self.depth) # front top left
+        glVertex3f(self.width, self.height, self.depth) # front top right
+        glVertex3f(self.width, self.height, -self.depth) # back top right
+        glVertex3f(-self.width, self.height, -self.depth) # back top left
+        
+        # bottom
+        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
+        glVertex3f(self.width, -self.height, self.depth) # front bottom right
+        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
+        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
+        
+        glEnd()
+        glDisable(GL_MULTISAMPLE)
+
+    def draw_wired_rect(self):
+        
+        glEnable(GL_LINE_SMOOTH)  # Enable line smoothing
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)  # Use the highest quality for line smoothing
         glLineWidth(3)
+        
         glBegin(GL_LINES)
         glColor3f(0.0, 0.0, 0.0)  
         glVertex3f(self.width, self.height, self.depth) # front top right
@@ -124,8 +221,8 @@ class RectangleMesh:
 
         glVertex3f(-self.width, self.height, self.depth) # front top left
         glVertex3f(-self.width, self.height, -self.depth) # back top left
-        glEnd()
-       
+        glEnd()  
+        
     def random_pos(self):
 
         # Generate random angles for rotation
@@ -134,25 +231,19 @@ class RectangleMesh:
         angle_z = random.uniform(0, 360)
                 
         # Apply radnom rotation
+        
         glRotatef(angle_x, 1, 0, 0)
         glRotatef(angle_y, 0, 1, 0)
-        glRotatef(angle_z, 0, 0, 1)
-        
-        # Generate random distance for translation
-        #distance_x = random.uniform(-1, 1)
-        #distance_y = random.uniform(-1, 1)
-        #distance_z = random.uniform(-2, -8)
-        
-        
-        # Apply random translation
-    
-        #glTranslatef(0, 0, distance_z)       
-
+        glRotatef(angle_z, 0, 0, 1)  
+           
     def set_scale(self, x, y, z):
+        
+        # new scale rectangle 
         self.width = x 
         self.height = y 
         self.depth = z
         self.draw_rect() 
+        
         
 if __name__ == "__main__":
     myApp = App()
