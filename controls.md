@@ -1,4 +1,4 @@
-# Those are the controls
+# Controls
 
 - Enter: generates a new box with new height, depth and width 
 - Arrowkey Right: randomly rotates the current object, takes a screenshot of the screen
