@@ -5,6 +5,8 @@ from OpenGL.GLU import *
 import numpy as np
 import random
 
+
+
 class App:
 
     def __init__(self):
@@ -16,12 +18,15 @@ class App:
         pg.display.set_caption("Wireframe generator")
         
         # Initialize OpenGL
-        glClearColor(1,1,1,1)
+        glClearColor(0,0,0,1)
         gluPerspective(45, self.display[0]/self.display[1], 0.1, 50)
-        # Initial camera position
         
+        # Activate variables 
+        self.axes = 0
+        self.wireframe = 1
+        
+        # Draw wired rectangle
         self.rectangle = RectangleMesh(1, 1, 1, [1,1,1], [0,1,0], [0,0,-10])   
-        #self.rectangle.draw_rect()
         self.rectangle.draw_wired_rect()
         glTranslatef(self.rectangle.position[0], self.rectangle.position[1], self.rectangle.position[2])   
         self.draw_axes()
@@ -30,8 +35,8 @@ class App:
     def mainLoop(self):
         rect_name = 0  
         img_number = 0 # counts the rectangle that is been shown
-        img_shot = 0 #counts how many screenshots were taken
-        axes = 0
+        img_shot = 0 # counts how many screenshots were taken
+        
         running = True
         while(running):
             # Check for events
@@ -40,14 +45,16 @@ class App:
                 if (event.type == pg.QUIT):
                     running = False
                 
+                elif (event.type == KEYDOWN) and (event.key == K_w):
+                    self.wireframe = not self.wireframe
+                
                 elif (event.type == KEYDOWN) and (event.key == K_a):
                     # draw axes
-                    axes = not axes
+                    self.axes = not self.axes
                    
                 elif (event.type == KEYDOWN) and (event.key == K_RIGHT):
                     # random position of rectangle
-                    
-                    self.rectangle.random_pos()
+                    self.rectangle.random_rotation()
                     
                     if (rect_name == img_number):
                         self.save_image(rect_name, img_shot)
@@ -66,8 +73,15 @@ class App:
                     print(self.rectangle.width, self.rectangle.depth, self.rectangle.height)
                 
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-                self.rectangle.draw_wired_rect()
-                if (axes):
+                if (self.wireframe):
+                    glDisable(GL_DEPTH_TEST)
+                    glDisable(GL_LIGHTING)
+                    glDisable(GL_LIGHT0)
+                    self.rectangle.draw_wired_rect()
+                else:
+                    self.lighting_setup()
+                    self.rectangle.draw_rect()
+                if (self.axes):
                     self.draw_axes()
                     
                 pg.display.flip()
@@ -135,7 +149,13 @@ class RectangleMesh:
     
     def draw_rect(self):
         
-         # Set material properties
+        # Set material properties
+        glColor3f(1.0, 1.0, 1.0)  # Set the color to white
+        glMaterialfv(GL_FRONT, GL_AMBIENT, [0.1, 0.1, 0.1, 1.0])  # Ambient material property
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, [1.0, 1.0, 1.0, 1.0])  # Diffuse material property
+        glMaterialfv(GL_FRONT, GL_SPECULAR, [1.0, 1.0, 1.0, 1.0])  # Specular material property
+        glMaterialf(GL_FRONT, GL_SHININESS, 50.0)  # Shininess of the material
+    
         glBegin(GL_QUADS)
         # front plane
         glVertex3f(self.width, self.height, self.depth) # front top right
@@ -174,7 +194,6 @@ class RectangleMesh:
         glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
         
         glEnd()
-        glDisable(GL_MULTISAMPLE)
 
     def draw_wired_rect(self):
         
@@ -183,7 +202,7 @@ class RectangleMesh:
         glLineWidth(3)
         
         glBegin(GL_LINES)
-        glColor3f(0.0, 0.0, 0.0)  
+        glColor3f(1.0, 1.0, 1.0)  
         glVertex3f(self.width, self.height, self.depth) # front top right
         glVertex3f(self.width, -self.height, self.depth) # front bottom right
 
@@ -223,7 +242,7 @@ class RectangleMesh:
         glVertex3f(-self.width, self.height, -self.depth) # back top left
         glEnd()  
         
-    def random_pos(self):
+    def random_rotation(self):
 
         # Generate random angles for rotation
         angle_x = random.uniform(0, 360)
