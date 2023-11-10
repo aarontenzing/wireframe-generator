@@ -1,6 +1,6 @@
 # Those are the controls
 
 - Enter: generates a new box with new height, depth and width 
-- Arrowkey Right: randomly rotates the current object, takes a screenshot of the screen
+- Space: randomly rotates the current object, takes a screenshot of the screen
 - Key a: enable drawing axis
 - Key w: enable drawing wireframe  
