@@ -12,9 +12,37 @@ class RectangleMesh:
         self.depth = depth/2
         self.eulers= np.array(eulers, dtype=np.float32) # angle
         self.position= np.array(position, dtype=np.float32) # position
+        
+        # Cube vertices and edges
+        self.vertices = (
+            (self.width,  self.height,  self.depth),
+            (-self.width, self.height, self.depth),
+            (-self.width, -self.height, self.depth),
+            (self.width, -self.height, self.depth),
+            (self.width, self.height, -self.depth),
+            (-self.width, self.height, -self.depth),
+            (-self.width, -self.height, -self.depth),
+            (self.width, -self.height, -self.depth)
+        )
+
+        self.edges = (
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (3, 0),
+            (4, 5),
+            (5, 6),
+            (6, 7),
+            (7, 4),
+            (0, 4),
+            (1, 5),
+            (2, 6),
+            (3, 7)
+        )
     
     def draw_rect(self):
         
+        glPushMatrix()
         # Set material properties
         glColor3f(1.0, 1.0, 1.0)  # Set the color to white
         glMaterialfv(GL_FRONT, GL_AMBIENT, [0.1, 0.1, 0.1, 1.0])  # Ambient material property
@@ -58,8 +86,8 @@ class RectangleMesh:
         glVertex3f(self.width, -self.height, self.depth) # front bottom right
         glVertex3f(self.width, -self.height, -self.depth) # back bottom right
         glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
-        
         glEnd()
+        glPopMatrix()
 
     def draw_wired_rect(self):
         
@@ -69,47 +97,14 @@ class RectangleMesh:
         
         glBegin(GL_LINES)
         glColor3f(1.0, 1.0, 1.0)  
-        glVertex3f(self.width, self.height, self.depth) # front top right
-        glVertex3f(self.width, -self.height, self.depth) # front bottom right
-
-        glVertex3f(self.width, -self.height, self.depth) # front bottom right
-        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
-
-        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
-        glVertex3f(-self.width, self.height, self.depth) # front top left
- 
-        glVertex3f(-self.width, self.height, self.depth) # front top left
-        glVertex3f(self.width, self.height, self.depth) # front top right
-
-        # Back plane
-        glVertex3f(self.width, self.height, -self.depth) # back top right
-        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
-
-        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
-        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
-
-        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
-        glVertex3f(-self.width, self.height, -self.depth) # back top left
-
-        glVertex3f(-self.width, self.height, -self.depth) # back top left
-        glVertex3f(self.width, self.height, -self.depth) # back top right
-            
-        # Connecting front and back   
-        glVertex3f(self.width, self.height, self.depth) # front top right
-        glVertex3f(self.width, self.height, -self.depth) # back top right
-
-        glVertex3f(self.width, -self.height, self.depth) # front bottom right
-        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
-
-        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
-        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
-
-        glVertex3f(-self.width, self.height, self.depth) # front top left
-        glVertex3f(-self.width, self.height, -self.depth) # back top left
+        for edge in self.edges:
+            for vertex in edge:
+                glVertex3fv(self.vertices[vertex])
         glEnd()  
 
     def set_translation(self, pos_x, pos_y, pos_z, wireframe):
-        
+        glLoadIdentity()
+        glPushMatrix()
         # set postions
         self.position[0] = pos_x
         self.position[1] = pos_y
@@ -119,10 +114,12 @@ class RectangleMesh:
         if (wireframe):
             self.draw_wired_rect()
         else:
-            self.draw_rect()        
+            self.draw_rect()      
+        glPopMatrix()
         
     def set_rotation(self, angle_x, angle_y, angle_z, wireframe):
-        
+        glLoadIdentity()
+        glPushMatrix()
         # set eulers
         self.eulers[0] = angle_x
         self.eulers[1] = angle_y
@@ -136,19 +133,21 @@ class RectangleMesh:
         if (wireframe):
            self.draw_wired_rect()
         else:
-            self.draw_rect()      
-           
-    def set_scale(self, x, y, z, wireframe):
+            self.draw_rect()  
+        glPopMatrix()
         
-        # new scale rectangle 
-        self.width = x 
-        self.height = y 
-        self.depth = z
-        
-        if (wireframe):
-            self.draw_wired_rect()
-        else:
-            self.draw_rect()
+    #def set_scale(self, x, y, z, wireframe):
+    #    
+    #    # new scale rectangle 
+    #    
+    #    self.width = x 
+    #    self.height = y 
+    #    self.depth = z
+    #    
+    #    if (wireframe):
+    #        self.draw_wired_rect()
+    #    else:
+    #        self.draw_rect()
 
     def write_dim_csv(self):
         # normalize dimensions

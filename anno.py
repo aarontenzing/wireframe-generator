@@ -22,14 +22,15 @@ class App:
         
         # activation variables 
         self.axes = 0
-        self.wireframe = 0
+        self.wireframe = 1
+        self.screenshot = 0
         
         # draw wired rectangle
         self.rectangle = RectangleMesh(1, 1, 1, [0,0,0], [0,0,0])   
         self.rectangle.draw_wired_rect()
         
         # initialize camera 
-        self.camera_pos = [-10.0, 0.0, -10.0]
+        self.camera_pos = [-10.0, 2.0, -10.0]
         self.look_at = [0.0, 0.0, 0.0]
         self.up_vector = [0.0, 1.0, 0.0]     
         gluLookAt(self.camera_pos[0], self.camera_pos[1], self.camera_pos[2], self.look_at[0], self.look_at[1], self.look_at[2], self.up_vector[0], self.up_vector[1], self.up_vector[2])
@@ -53,6 +54,10 @@ class App:
                 if (event.type == KEYDOWN) and (event.key == K_w):
                     # draw wired or not
                     self.wireframe = not self.wireframe
+                    
+                if (event.type == KEYDOWN) and (event.key == K_s):
+                    # enable screenshots
+                    self.screenshot = not self.screenshot 
                 
                 if (event.type == KEYDOWN) and (event.key == K_a):
                     # draw axes
@@ -60,26 +65,30 @@ class App:
                    
                 if (event.type == KEYDOWN) and (event.key == K_RIGHT):
                     # random position of rectangle
-                    self.rectangle.set_rotation(random.uniform(0, 360), random.uniform(0, 360), random.uniform(0, 360), self.wireframe)
+                    self.rectangle.set_rotation(0, random.uniform(0,360), 0, self.wireframe)
                     #self.rectangle.set_translation(random.uniform(2,-2),  random.uniform(2,-2),  random.uniform(2,-2), self.wireframe)
-                    print("random rotation", self.rectangle.eulers, self.rectangle.position)
-                    # write new rectangle coordinates and rotations to CSV file
-                    print(modelview_matrix)
                     
-                    if (rect_name == img_number):
-                        self.save_image(rect_name, img_shot)
-                        img_shot += 1
-                    else:
-                        img_number += 1  
-                        rect_name = img_number   
-                        img_shot = 0
-                        self.save_image(rect_name, img_shot)
-                        img_shot += 1    
+                    print("random rotation: ", self.rectangle.eulers)
+                    print("random translation: ", self.rectangle.position )
+                    
+                    # write new rectangle coordinates and rotations to CSV file
+                    if (self.screenshot):
+                        if (rect_name == img_number):
+                            self.save_image(rect_name, img_shot)
+                            img_shot += 1
+                        else:
+                            img_number += 1  
+                            rect_name = img_number   
+                            img_shot = 0
+                            self.save_image(rect_name, img_shot)
+                            img_shot += 1    
 
                 if (event.type == KEYDOWN) and (event.key == K_RETURN):
-                    # new size of rectangle
-                    self.rectangle.set_scale(random.uniform(0.1,4), random.uniform(0.1,4), random.uniform(0.1,4), self.wireframe)
-                    print("dimension of the rectangle",self.rectangle.width, self.rectangle.height, self.rectangle.depth)
+                    print("delete rectangle...")
+                    del self.rectangle
+                     # new size of rectangle
+                    self.rectangle = RectangleMesh(random.uniform(0.1,4), random.uniform(0.1,4), random.uniform(0.1,4), [0,0,0], [0,0,0])   
+                    print("created rectangle: ",self.rectangle.width, self.rectangle.height, self.rectangle.depth)
                     # writable dimensions to csv file: normalize by the height
                     
                     # rectangle name count
@@ -91,6 +100,7 @@ class App:
                 if (self.axes):
                     self.draw_axes()
                 
+                glPushMatrix()
                 if (self.wireframe):
                     glDisable(GL_DEPTH_TEST)
                     glDisable(GL_LIGHTING)
@@ -99,6 +109,7 @@ class App:
                 else:
                     self.lighting_setup()
                     self.rectangle.draw_rect()
+                glPopMatrix()
                 
                 # Get the current model-view matrix
                 modelview_matrix = glGetFloatv(GL_MODELVIEW_MATRIX)
@@ -158,7 +169,30 @@ class App:
         glVertex3f(0, 0, 0)
         glVertex3f(0, 0, 5)
         glEnd()      
+
+    def get_coordinates(self, modelview_matrix, projection_matrix):
+        world_coordinates = []
+        projection_coordinates = []
+        # loop through rectangle vertices
+        for vertex in self.rectangle.vertices:
+            transformed_vertex_world = [0,0,0,0]
+            transformed_vertex_projection = [0,0,0,0]
+            
+            # apply model-view matrix
+            for i in range(4):
+                for j in range(4):
+                    transformed_vertex_world[i] += modelview_matrix[i][j] * vertex[j]
+                    
+            # apply projection matrix
+            for i in range(4):
+                for j in range(4):
+                    transformed_vertex_projection[i] += projection_matrix[j][i] * vertex[j]
+            
+            world_coordinates.append(transformed_vertex_world[:3])
+            projection_coordinates.append(transformed_vertex_projection[:3])
         
+        return world_coordinates, projection_coordinates
+      
 if __name__ == "__main__":
     myApp = App()
 
