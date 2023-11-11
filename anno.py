@@ -5,6 +5,7 @@ from OpenGL.GLU import *
 import numpy as np
 import random
 from rectangle import RectangleMesh
+from write_csv import write
 
 class App:
 
@@ -15,7 +16,6 @@ class App:
         self.display = (512,512)
         self.screen = pg.display.set_mode(self.display, pg.OPENGL|pg.DOUBLEBUF) # tell pygame we run OPENGL & DOUBLEBUFFERING, one frame vis & one drawing
         pg.display.set_caption("Wireframe generator")
-        
         # initialize OpenGL
         glClearColor(0,0,0,1)
         gluPerspective(45, self.display[0]/self.display[1], 0.1, 50)
@@ -27,7 +27,9 @@ class App:
         
         # draw wired rectangle
         self.rectangle = RectangleMesh(1, 1, 1, [0,0,0], [0,0,0])   
+        glPushMatrix()
         self.rectangle.draw_wired_rect()
+        glPopMatrix()
         
         # initialize camera 
         self.camera_pos = [-10.0, 2.0, -10.0]
@@ -65,7 +67,7 @@ class App:
                    
                 if (event.type == KEYDOWN) and (event.key == K_RIGHT):
                     # random position of rectangle
-                    self.rectangle.set_rotation(0, random.uniform(0,360), 0, self.wireframe)
+                    self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360), self.wireframe)
                     #self.rectangle.set_translation(random.uniform(2,-2),  random.uniform(2,-2),  random.uniform(2,-2), self.wireframe)
                     
                     print("random rotation: ", self.rectangle.eulers)
@@ -96,11 +98,10 @@ class App:
                 
                 # Enable and draw scene
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-                
+                glPushMatrix()
                 if (self.axes):
                     self.draw_axes()
                 
-                glPushMatrix()
                 if (self.wireframe):
                     glDisable(GL_DEPTH_TEST)
                     glDisable(GL_LIGHTING)

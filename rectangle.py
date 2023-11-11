@@ -41,7 +41,7 @@ class RectangleMesh:
         )
     
     def draw_rect(self):
-        
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glPushMatrix()
         # Set material properties
         glColor3f(1.0, 1.0, 1.0)  # Set the color to white
@@ -90,7 +90,7 @@ class RectangleMesh:
         glPopMatrix()
 
     def draw_wired_rect(self):
-        
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glEnable(GL_LINE_SMOOTH)  # Enable line smoothing
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)  # Use the highest quality for line smoothing
         glLineWidth(3)
