@@ -16,28 +16,20 @@ class App:
         self.display = (512,512)
         self.screen = pg.display.set_mode(self.display, pg.OPENGL|pg.DOUBLEBUF) # tell pygame we run OPENGL & DOUBLEBUFFERING, one frame vis & one drawing
         pg.display.set_caption("Wireframe generator")
-        # initialize OpenGL
-        glClearColor(0,0,0,1)
-        gluPerspective(45, self.display[0]/self.display[1], 0.1, 50)
         
         # activation variables 
         self.axes = 0
         self.wireframe = 1
         self.screenshot = 0
         
+        # initialize OpenGL
+        glClearColor(0,0,0,1)
+        gluPerspective(45, self.display[0]/self.display[1], 0.1, 50)
+       
         # draw wired rectangle
-        self.rectangle = RectangleMesh(1, 1, 1, [0,0,0], [0,0,0])   
-        glPushMatrix()
+        self.rectangle = RectangleMesh(1, 1, 1, [0,0,0], [0,0,-20]) 
         self.rectangle.draw_wired_rect()
-        glPopMatrix()
         
-        # initialize camera 
-        self.camera_pos = [-10.0, 2.0, -10.0]
-        self.look_at = [0.0, 0.0, 0.0]
-        self.up_vector = [0.0, 1.0, 0.0]     
-        gluLookAt(self.camera_pos[0], self.camera_pos[1], self.camera_pos[2], self.look_at[0], self.look_at[1], self.look_at[2], self.up_vector[0], self.up_vector[1], self.up_vector[2])
-        
-        self.draw_axes()
         self.mainLoop()
 
     def mainLoop(self):
@@ -64,14 +56,19 @@ class App:
                 if (event.type == KEYDOWN) and (event.key == K_a):
                     # draw axes
                     self.axes = not self.axes
+                    
+                if (event.type == KEYDOWN) and (event.key == K_p):
+                    # draw axes
+                    print(self.rectangle.eulers)
+                  
                    
                 if (event.type == KEYDOWN) and (event.key == K_RIGHT):
                     # random position of rectangle
-                    self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360), self.wireframe)
-                    #self.rectangle.set_translation(random.uniform(2,-2),  random.uniform(2,-2),  random.uniform(2,-2), self.wireframe)
+                    self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
+                    self.rectangle.set_translation(random.uniform(-5,5), random.uniform(-5,5), random.uniform(-10,-20))
                     
                     print("random rotation: ", self.rectangle.eulers)
-                    print("random translation: ", self.rectangle.position )
+                    print("random translation: ", self.rectangle.position)
                     
                     # write new rectangle coordinates and rotations to CSV file
                     if (self.screenshot):
@@ -88,19 +85,15 @@ class App:
                 if (event.type == KEYDOWN) and (event.key == K_RETURN):
                     print("delete rectangle...")
                     del self.rectangle
-                     # new size of rectangle
-                    self.rectangle = RectangleMesh(random.uniform(0.1,4), random.uniform(0.1,4), random.uniform(0.1,4), [0,0,0], [0,0,0])   
+                    # new size of rectangle
+                    self.rectangle = RectangleMesh(random.uniform(0.1,5), random.uniform(0.1,5), random.uniform(0.1,5), [0,0,0], [0,0,-15])   
                     print("created rectangle: ",self.rectangle.width, self.rectangle.height, self.rectangle.depth)
-                    # writable dimensions to csv file: normalize by the height
-                    
                     # rectangle name count
                     rect_name += 1
-                
-                # Enable and draw scene
+                    # writable dimensions to csv file: normalize by the height
+                    
+                # --- Drawing the scene --- #
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-                glPushMatrix()
-                if (self.axes):
-                    self.draw_axes()
                 
                 if (self.wireframe):
                     glDisable(GL_DEPTH_TEST)
@@ -110,7 +103,6 @@ class App:
                 else:
                     self.lighting_setup()
                     self.rectangle.draw_rect()
-                glPopMatrix()
                 
                 # Get the current model-view matrix
                 modelview_matrix = glGetFloatv(GL_MODELVIEW_MATRIX)

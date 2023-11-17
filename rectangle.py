@@ -40,9 +40,24 @@ class RectangleMesh:
             (3, 7)
         )
     
+    def set_translation(self, pos_x, pos_y , pos_z):
+        self.position = np.array((pos_x, pos_y, pos_z),dtype=np.float32)
+    
+    def set_rotation(self, rot_x, rot_y, rot_z):
+        self.eulers = np.array((rot_x, rot_y, rot_z),dtype=np.float32)
+
     def draw_rect(self):
+        
+        glMatrixMode(GL_MODELVIEW)
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glPushMatrix()
+        
+        glTranslatef(self.position[0], self.position[1], self.position[2])
+        glRotatef(self.eulers[0], 1, 0, 0)
+        glRotatef(self.eulers[1], 0, 1, 0)
+        glRotatef(self.eulers[2], 0, 0, 1)
+
         # Set material properties
         glColor3f(1.0, 1.0, 1.0)  # Set the color to white
         glMaterialfv(GL_FRONT, GL_AMBIENT, [0.1, 0.1, 0.1, 1.0])  # Ambient material property
@@ -87,10 +102,22 @@ class RectangleMesh:
         glVertex3f(self.width, -self.height, -self.depth) # back bottom right
         glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
         glEnd()
+        
         glPopMatrix()
 
     def draw_wired_rect(self):
+        
+        glMatrixMode(GL_MODELVIEW)
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        
+        glPushMatrix() 
+    
+        glTranslatef(self.position[0], self.position[1], self.position[2])
+        glRotatef(self.eulers[0], 1, 0, 0)
+        glRotatef(self.eulers[1], 0, 1, 0)
+        glRotatef(self.eulers[2], 0, 0, 1) 
+        
         glEnable(GL_LINE_SMOOTH)  # Enable line smoothing
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)  # Use the highest quality for line smoothing
         glLineWidth(3)
@@ -100,54 +127,9 @@ class RectangleMesh:
         for edge in self.edges:
             for vertex in edge:
                 glVertex3fv(self.vertices[vertex])
-        glEnd()  
-
-    def set_translation(self, pos_x, pos_y, pos_z, wireframe):
-        glLoadIdentity()
-        glPushMatrix()
-        # set postions
-        self.position[0] = pos_x
-        self.position[1] = pos_y
-        self.position[2] = pos_z
-        glTranslatef(self.position[0], self.position[1], self.position[2])
-        # draw with rotation
-        if (wireframe):
-            self.draw_wired_rect()
-        else:
-            self.draw_rect()      
+        glEnd()
+            
         glPopMatrix()
-        
-    def set_rotation(self, angle_x, angle_y, angle_z, wireframe):
-        glLoadIdentity()
-        glPushMatrix()
-        # set eulers
-        self.eulers[0] = angle_x
-        self.eulers[1] = angle_y
-        self.eulers[2] = angle_z
-        # apply radnom rotation
-        glRotatef(self.eulers[0], 1, 0, 0)
-        glRotatef(self.eulers[1], 0, 1, 0)
-        glRotatef(self.eulers[2], 0, 0, 1)  
-        
-        # draw with rotation
-        if (wireframe):
-           self.draw_wired_rect()
-        else:
-            self.draw_rect()  
-        glPopMatrix()
-        
-    #def set_scale(self, x, y, z, wireframe):
-    #    
-    #    # new scale rectangle 
-    #    
-    #    self.width = x 
-    #    self.height = y 
-    #    self.depth = z
-    #    
-    #    if (wireframe):
-    #        self.draw_wired_rect()
-    #    else:
-    #        self.draw_rect()
 
     def write_dim_csv(self):
         # normalize dimensions
