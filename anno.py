@@ -187,7 +187,7 @@ class App:
             # apply projection matrix
             for i in range(4):
                 for j in range(4):
-                    transformed_vertex_projection[i] += projection_matrix[j][i] * vertex[j]
+                    transformed_vertex_projection[i] += projection_matrix[i][j] * vertex[j]
             
             world_coordinates.append(transformed_vertex_world[:3])
             projection_coordinates.append(transformed_vertex_projection[:3])
