@@ -111,6 +111,8 @@ class RectangleMesh:
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         
+        glEnable(GL_DEPTH_TEST)
+        
         glPushMatrix() 
     
         glTranslatef(self.position[0], self.position[1], self.position[2])
@@ -120,13 +122,55 @@ class RectangleMesh:
         
         glEnable(GL_LINE_SMOOTH)  # Enable line smoothing
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)  # Use the highest quality for line smoothing
-        glLineWidth(3)
+        glLineWidth(2.5)
         
         glBegin(GL_LINES)
         glColor3f(1.0, 1.0, 1.0)  
         for edge in self.edges:
             for vertex in edge:
                 glVertex3fv(self.vertices[vertex])
+        glEnd()
+        
+        # Set material properties
+        
+        glColor3f(0.0, 0.0, 0.0)  
+    
+        glBegin(GL_QUADS)
+        # front plane
+        glVertex3f(self.width, self.height, self.depth) # front top right
+        glVertex3f(-self.width, self.height, self.depth) # front top left
+        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
+        glVertex3f(self.width, -self.height, self.depth) # front bottom right
+        
+        # Back plane
+        glVertex3f(self.width, self.height, -self.depth) # back top right
+        glVertex3f(-self.width, self.height, -self.depth) # back top left
+        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
+        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
+         
+        # left    
+        glVertex3f(-self.width, self.height, self.depth) # front top left
+        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
+        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
+        glVertex3f(-self.width, self.height, -self.depth) # back top left
+        
+        # right
+        glVertex3f(self.width, self.height, self.depth) # front top right
+        glVertex3f(self.width, -self.height, self.depth) # front bottom right
+        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
+        glVertex3f(self.width, self.height, -self.depth) # back top right
+        
+        # top
+        glVertex3f(-self.width, self.height, self.depth) # front top left
+        glVertex3f(self.width, self.height, self.depth) # front top right
+        glVertex3f(self.width, self.height, -self.depth) # back top right
+        glVertex3f(-self.width, self.height, -self.depth) # back top left
+        
+        # bottom
+        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
+        glVertex3f(self.width, -self.height, self.depth) # front bottom right
+        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
+        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
         glEnd()
             
         glPopMatrix()
