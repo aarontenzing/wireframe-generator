@@ -71,7 +71,7 @@ class App:
                     # take screenshot && write rectangle data to CSV file
                     if (self.screenshot):
                         wc, pc = self.get_coordinates(glGetFloatv(GL_MODELVIEW_MATRIX), glGetFloatv(GL_PROJECTION_MATRIX))
-                        write(rect_name,  wc, pc, (1,1,1),self.rectangle.eulers)
+                        write(rect_name,  wc, pc, (1,1,1) ,self.rectangle.eulers.tolist())
                         if (rect_name == img_number):
                             self.save_image(rect_name, img_shot)
                             img_shot += 1
@@ -95,12 +95,6 @@ class App:
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
                 
                 self.rectangle.draw_wired_rect()
-                
-                # Get the current model-view matrix
-                modelview_matrix = glGetFloatv(GL_MODELVIEW_MATRIX)
-                
-                 # Get the current projection matrix
-                projection_matrix = glGetFloatv(GL_PROJECTION_MATRIX)
                     
                 pg.display.flip()
                 pg.time.wait(60)
@@ -168,12 +162,12 @@ class App:
             # apply model-view matrix
             for i in range(4):
                 for j in range(4):
-                    transformed_vertex_world[i] += modelview_matrix[i][j] * vertex_new[j]
+                    transformed_vertex_world[i] += float(modelview_matrix[i][j] * vertex_new[j])
                     
             # apply projection matrix
             for i in range(4):
                 for j in range(4):
-                    transformed_vertex_projection[i] += projection_matrix[i][j] * vertex_new[j]
+                    transformed_vertex_projection[i] += float(projection_matrix[i][j] * vertex_new[j])
                     
             
             world_coordinates.append(tuple(transformed_vertex_world[:3]))

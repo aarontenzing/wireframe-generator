@@ -1,8 +1,9 @@
 import json
+import numpy 
 
 def write(rectanlge, world_coordinates, projection_coordinates, center, rotation):
     
-        
+
     # data written to csv
     data = {"image" : rectanlge,
             "world" : world_coordinates,
