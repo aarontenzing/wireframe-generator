@@ -5,7 +5,8 @@ from OpenGL.GLU import *
 import numpy as np
 import random
 from rectangle import RectangleMesh
-from write_csv import write
+from write_json import write
+from PIL import Image  # Import ImageGrab from the PIL library (Pillow)
 
 class App:
 
@@ -19,8 +20,7 @@ class App:
         
         # activation variables 
         self.axes = 0
-        self.wireframe = 1
-        self.screenshot = 0
+        self.screenshot = 1
         
         # initialize OpenGL
         glClearColor(0,0,0,1)
@@ -33,9 +33,9 @@ class App:
         self.mainLoop()
 
     def mainLoop(self):
-        rect_name = 0  
-        img_number = 0 # counts the rectangle that is been shown
-        img_shot = 0 # counts how many screenshots were taken
+        rect_name = 1  
+        img_number = 1 # counts the rectangle that is been shown
+        img_shot = 1 # counts how many screenshots were taken
         
         running = True
         while(running):
@@ -44,10 +44,6 @@ class App:
                 
                 if (event.type == pg.QUIT):
                     running = False
-                
-                if (event.type == KEYDOWN) and (event.key == K_w):
-                    # draw wired or not
-                    self.wireframe = not self.wireframe
                     
                 if (event.type == KEYDOWN) and (event.key == K_s):
                     # enable screenshots
@@ -66,19 +62,23 @@ class App:
                     # random position of rectangle
                     self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
                     self.rectangle.set_translation(random.uniform(-5,5), random.uniform(-5,5), random.uniform(-10,-20))
+                    self.rectangle.draw_wired_rect()
+                    pg.time.wait(60)
                     
                     print("random rotation: ", self.rectangle.eulers)
                     print("random translation: ", self.rectangle.position)
                     
-                    # write new rectangle coordinates and rotations to CSV file
+                    # take screenshot && write rectangle data to CSV file
                     if (self.screenshot):
+                        wc, pc = self.get_coordinates(glGetFloatv(GL_MODELVIEW_MATRIX), glGetFloatv(GL_PROJECTION_MATRIX))
+                        write(rect_name,  wc, pc, (1,1,1),self.rectangle.eulers)
                         if (rect_name == img_number):
                             self.save_image(rect_name, img_shot)
                             img_shot += 1
                         else:
                             img_number += 1  
                             rect_name = img_number   
-                            img_shot = 0
+                            img_shot = 1
                             self.save_image(rect_name, img_shot)
                             img_shot += 1    
 
@@ -87,22 +87,14 @@ class App:
                     del self.rectangle
                     # new size of rectangle
                     self.rectangle = RectangleMesh(random.uniform(0.1,5), random.uniform(0.1,5), random.uniform(0.1,5), [0,0,0], [0,0,-15])   
-                    print("created rectangle: ",self.rectangle.width, self.rectangle.height, self.rectangle.depth)
+                    print("created rectangle: ", self.rectangle.width, self.rectangle.height, self.rectangle.depth)
                     # rectangle name count
                     rect_name += 1
-                    # writable dimensions to csv file: normalize by the height
                     
                 # --- Drawing the scene --- #
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
                 
-                if (self.wireframe):
-                    glDisable(GL_DEPTH_TEST)
-                    glDisable(GL_LIGHTING)
-                    glDisable(GL_LIGHT0)
-                    self.rectangle.draw_wired_rect()
-                else:
-                    self.lighting_setup()
-                    self.rectangle.draw_rect()
+                self.rectangle.draw_wired_rect()
                 
                 # Get the current model-view matrix
                 modelview_matrix = glGetFloatv(GL_MODELVIEW_MATRIX)
@@ -118,12 +110,13 @@ class App:
     def quit(self):
         pg.quit()
 
-    def save_image(self, rectangle_number, count):
+    def save_image(self, rect_name, img_shot):
+        print("taking screenshot...")
         pixels = glReadPixels(0, 0, self.display[0], self.display[1], GL_RGB, GL_UNSIGNED_BYTE) 
         image = pg.image.frombuffer(pixels, (self.display[0], self.display[1]), 'RGB') # read pixels from the OpenGL buffer
-        name = "wireframes\\img" + str(rectangle_number) + "_" + str(count) + ".png"
+        name = "wireframes\\img" + str(rect_name) + "_" + str(img_shot) + ".png"
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
-    
+        
     def lighting_setup(self):
         
         glEnable(GL_DEPTH_TEST)
@@ -168,21 +161,23 @@ class App:
         projection_coordinates = []
         # loop through rectangle vertices
         for vertex in self.rectangle.vertices:
+            vertex_new = vertex + (0,)  # tuple had only 3 elements
             transformed_vertex_world = [0,0,0,0]
             transformed_vertex_projection = [0,0,0,0]
             
             # apply model-view matrix
             for i in range(4):
                 for j in range(4):
-                    transformed_vertex_world[i] += modelview_matrix[i][j] * vertex[j]
+                    transformed_vertex_world[i] += modelview_matrix[i][j] * vertex_new[j]
                     
             # apply projection matrix
             for i in range(4):
                 for j in range(4):
-                    transformed_vertex_projection[i] += projection_matrix[i][j] * vertex[j]
+                    transformed_vertex_projection[i] += projection_matrix[i][j] * vertex_new[j]
+                    
             
-            world_coordinates.append(transformed_vertex_world[:3])
-            projection_coordinates.append(transformed_vertex_projection[:3])
+            world_coordinates.append(tuple(transformed_vertex_world[:3]))
+            projection_coordinates.append(tuple(transformed_vertex_projection[:3]))
         
         return world_coordinates, projection_coordinates
       

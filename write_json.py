@@ -2,6 +2,7 @@ import json
 
 def write(rectanlge, world_coordinates, projection_coordinates, center, rotation):
     
+        
     # data written to csv
     data = {"image" : rectanlge,
             "world" : world_coordinates,
@@ -19,9 +20,4 @@ def write(rectanlge, world_coordinates, projection_coordinates, center, rotation
     file_data.append(data) 
     
     with open("annotations.json", 'w') as file:
-        json.dump(file_data, file) # dict to array (json)
-    
-        
-if __name__ == "__main__":
-    write(1, [[1,1,1],[1,1,1],[1,1,1],[1,1,1]], [1,1,1], [1,1,1], [200,10,15])
-    
+        json.dump(file_data, file) # dict to array (json)   

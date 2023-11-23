@@ -46,65 +46,6 @@ class RectangleMesh:
     def set_rotation(self, rot_x, rot_y, rot_z):
         self.eulers = np.array((rot_x, rot_y, rot_z),dtype=np.float32)
 
-    def draw_rect(self):
-        
-        glMatrixMode(GL_MODELVIEW)
-        
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glPushMatrix()
-        
-        glTranslatef(self.position[0], self.position[1], self.position[2])
-        glRotatef(self.eulers[0], 1, 0, 0)
-        glRotatef(self.eulers[1], 0, 1, 0)
-        glRotatef(self.eulers[2], 0, 0, 1)
-
-        # Set material properties
-        glColor3f(1.0, 1.0, 1.0)  # Set the color to white
-        glMaterialfv(GL_FRONT, GL_AMBIENT, [0.1, 0.1, 0.1, 1.0])  # Ambient material property
-        glMaterialfv(GL_FRONT, GL_DIFFUSE, [1.0, 1.0, 1.0, 1.0])  # Diffuse material property
-        glMaterialfv(GL_FRONT, GL_SPECULAR, [1.0, 1.0, 1.0, 1.0])  # Specular material property
-        glMaterialf(GL_FRONT, GL_SHININESS, 50.0)  # Shininess of the material
-    
-        glBegin(GL_QUADS)
-        # front plane
-        glVertex3f(self.width, self.height, self.depth) # front top right
-        glVertex3f(-self.width, self.height, self.depth) # front top left
-        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
-        glVertex3f(self.width, -self.height, self.depth) # front bottom right
-        
-        # Back plane
-        glVertex3f(self.width, self.height, -self.depth) # back top right
-        glVertex3f(-self.width, self.height, -self.depth) # back top left
-        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
-        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
-         
-        # left    
-        glVertex3f(-self.width, self.height, self.depth) # front top left
-        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
-        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
-        glVertex3f(-self.width, self.height, -self.depth) # back top left
-        
-        # right
-        glVertex3f(self.width, self.height, self.depth) # front top right
-        glVertex3f(self.width, -self.height, self.depth) # front bottom right
-        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
-        glVertex3f(self.width, self.height, -self.depth) # back top right
-        
-        # top
-        glVertex3f(-self.width, self.height, self.depth) # front top left
-        glVertex3f(self.width, self.height, self.depth) # front top right
-        glVertex3f(self.width, self.height, -self.depth) # back top right
-        glVertex3f(-self.width, self.height, -self.depth) # back top left
-        
-        # bottom
-        glVertex3f(-self.width, -self.height, self.depth) # front bottom left
-        glVertex3f(self.width, -self.height, self.depth) # front bottom right
-        glVertex3f(self.width, -self.height, -self.depth) # back bottom right
-        glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
-        glEnd()
-        
-        glPopMatrix()
-
     def draw_wired_rect(self):
         
         glMatrixMode(GL_MODELVIEW)
