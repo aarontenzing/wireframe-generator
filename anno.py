@@ -70,8 +70,10 @@ class App:
                     
                     # take screenshot && write rectangle data to CSV file
                     if (self.screenshot):
-                        wc, pc = self.get_coordinates(glGetFloatv(GL_MODELVIEW_MATRIX), glGetFloatv(GL_PROJECTION_MATRIX))
-                        write(rect_name,  wc, pc, (1,1,1) ,self.rectangle.eulers.tolist())
+                        # calculate annotation
+                        wc, pc, center = self.get_coordinates(glGetDoublev(GL_MODELVIEW_MATRIX), glGetDoublev(GL_PROJECTION_MATRIX), glGetDoublev(GL_VIEWPORT))
+                        # write to json
+                        write(rect_name, img_shot,  wc, pc, center)
                         if (rect_name == img_number):
                             self.save_image(rect_name, img_shot)
                             img_shot += 1
@@ -81,6 +83,7 @@ class App:
                             img_shot = 1
                             self.save_image(rect_name, img_shot)
                             img_shot += 1    
+                        
 
                 if (event.type == KEYDOWN) and (event.key == K_RETURN):
                     print("delete rectangle...")
@@ -150,11 +153,13 @@ class App:
         glVertex3f(0, 0, 5)
         glEnd()      
 
-    def get_coordinates(self, modelview_matrix, projection_matrix):
+    def get_coordinates(self, modelview_matrix, projection_matrix, viewport):
         world_coordinates = []
         projection_coordinates = []
+        center_coordinates = [] # consists of 2 elements: world and projection coordinates
         # loop through rectangle vertices
         for vertex in self.rectangle.vertices:
+            
             vertex_new = vertex + (0,)  # tuple had only 3 elements
             transformed_vertex_world = [0,0,0,0]
             transformed_vertex_projection = [0,0,0,0]
@@ -164,16 +169,58 @@ class App:
                 for j in range(4):
                     transformed_vertex_world[i] += float(modelview_matrix[i][j] * vertex_new[j])
                     
-            # apply projection matrix
+            # apply projection matrix -> those are normalized
             for i in range(4):
                 for j in range(4):
                     transformed_vertex_projection[i] += float(projection_matrix[i][j] * vertex_new[j])
-                    
+                    screen_x, screen_y = convert_projected_to_screen(transformed_vertex_projection[0], transformed_vertex_projection[1], viewport)
             
+         
             world_coordinates.append(tuple(transformed_vertex_world[:3]))
-            projection_coordinates.append(tuple(transformed_vertex_projection[:3]))
+            projection_coordinates.append((screen_x, screen_y))
+            
+        # center calculation 
+        tmp = world_coordinates[0]
+        x, y, z = tmp[0], tmp[1], tmp[2]
+        x = x-self.rectangle.width
+        y = y-self.rectangle.height
+        z = z-self.rectangle.depth
+        center_coordinates.append((x,y,z))
+        convert_projected_to_screen(x, y, viewport)
+        center_coordinates.append((screen_x, screen_y))  
         
-        return world_coordinates, projection_coordinates
+        return world_coordinates, projection_coordinates, center_coordinates
+
+def convert_projected_to_screen(proj_x, proj_y, viewport):
+    screen_x = int((1 + proj_x) * viewport[2] / 2 )
+    screen_y = int((1 - proj_y) * viewport[3] / 2 )
+    print(screen_x, screen_y)
+    return screen_x, screen_y
+  
+    def get_coordinates2(self, modelview_matrix, projection_matrix, viewport):
+
+        projection_coordinates = []
+        world_coordinates = []
+        center_coordinates = []
+        # loop through rectangle vertices
+        for vertex in (self.rectangle.vertices + (self.rectangle.center,)):
+            # screen coordinates
+            x, y, z = ctypes.c_double(vertex[0]), ctypes.c_double(vertex[1]), ctypes.c_double(vertex[2])
+            
+            win_x, win_y, win_z = gluProject(x, y, z, modelview_matrix, projection_matrix, viewport)
+            # unproject screen coordinates to get world coordinates
+            world_x, world_y, world_z = gluUnProject(GLdouble(win_x), GLdouble(win_y), GLdouble(win_z), modelview_matrix, projection_matrix, viewport)
+            
+            if (vertex == (0,0,0)):
+                center_coordinates.append((world_x, world_y, world_z))
+                center_coordinates.append((win_x, win_y, win_z))
+            else:
+                # add pc cords to list
+                projection_coordinates.append((win_x, win_y, win_z))
+                # add wc cords to list
+                world_coordinates.append((world_x, world_y, world_z))
+            
+        return world_coordinates, projection_coordinates, center_coordinates
       
 if __name__ == "__main__":
     myApp = App()

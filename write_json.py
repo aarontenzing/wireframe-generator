@@ -1,15 +1,16 @@
 import json
 import numpy 
 
-def write(rectanlge, world_coordinates, projection_coordinates, center, rotation):
+def write(rectangle, shot, world_coordinates, projection_coordinates, center):
     
-
     # data written to csv
-    data = {"image" : rectanlge,
-            "world" : world_coordinates,
-            "projection" : projection_coordinates,
-            "center" : center, 
-            "rotation" : rotation}
+    data = {
+                "image" : rectangle,
+                "shot"  : shot,
+                "world" : world_coordinates,
+                "projection" : projection_coordinates,
+                "center" : center
+            }
     
     with open("annotations.json", "r") as file:
         try:
@@ -21,4 +22,4 @@ def write(rectanlge, world_coordinates, projection_coordinates, center, rotation
     file_data.append(data) 
     
     with open("annotations.json", 'w') as file:
-        json.dump(file_data, file) # dict to array (json)   
+        json.dump(file_data, file, indent=2) # dict to array (json)   

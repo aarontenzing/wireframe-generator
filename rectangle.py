@@ -12,6 +12,7 @@ class RectangleMesh:
         self.depth = depth/2
         self.eulers= np.array(eulers, dtype=np.float32) # angle
         self.position= np.array(position, dtype=np.float32) # position
+        self.center = (0,0,0,0) # drew rect around 0
         
         # Cube vertices and edges
         self.vertices = (
