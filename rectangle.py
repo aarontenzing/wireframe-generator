@@ -13,6 +13,7 @@ class RectangleMesh:
         self.eulers= np.array(eulers, dtype=np.float32) # angle
         self.position= np.array(position, dtype=np.float32) # position
         self.center = (0,0,0,0) # drew rect around 0
+        self.modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
         
         # Cube vertices and edges
         self.vertices = (
@@ -114,7 +115,9 @@ class RectangleMesh:
         glVertex3f(self.width, -self.height, -self.depth) # back bottom right
         glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
         glEnd()
-            
+        
+        self.modelview = glGetDoublev(GL_MODELVIEW_MATRIX) # modelview matrix saven
+        
         glPopMatrix()
 
     def write_dim_csv(self):

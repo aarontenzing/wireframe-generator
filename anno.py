@@ -71,7 +71,8 @@ class App:
                     # take screenshot && write rectangle data to CSV file
                     if (self.screenshot):
                         # calculate annotation
-                        wc, pc, center = self.get_coordinates(glGetDoublev(GL_MODELVIEW_MATRIX), glGetDoublev(GL_PROJECTION_MATRIX), glGetDoublev(GL_VIEWPORT))
+                        #print("this is the MODELVIEW matrix: ",self.rectangle.modelview)
+                        wc, pc, center = self.get_coordinates(self.rectangle.modelview, glGetDoublev(GL_PROJECTION_MATRIX), glGetDoublev(GL_VIEWPORT))
                         # write to json
                         write(rect_name, img_shot,  wc, pc, center)
                         if (rect_name == img_number):
@@ -138,6 +139,8 @@ class App:
         glEnd()      
 
     def get_coordinates(self, modelview_matrix, projection_matrix, viewport):
+        
+        print(modelview_matrix)
         world_coordinates = []
         projection_coordinates = []
         center_coordinates = [] # consists of 2 elements: world and projection coordinates
@@ -156,29 +159,30 @@ class App:
             # apply projection matrix -> those are normalized
             for i in range(4):
                 for j in range(4):
-                    transformed_vertex_projection[i] += float(projection_matrix[i][j] * vertex_new[j])
+                    transformed_vertex_projection[i] += float(projection_matrix[i][j] * transformed_vertex_world[j])
                     screen_x, screen_y = self.convert_projected_to_screen(transformed_vertex_projection[0], transformed_vertex_projection[1], viewport)
             
-         
+            
             world_coordinates.append(tuple(transformed_vertex_world[:3]))
             projection_coordinates.append((screen_x, screen_y))
             
         # center calculation 
-        tmp = world_coordinates[0]
-        x, y, z = tmp[0], tmp[1], tmp[2]
+        values = world_coordinates[0]
+        x, y, z = values[0], values[1], values[2]
         x = x-self.rectangle.width
         y = y-self.rectangle.height
         z = z-self.rectangle.depth
         center_coordinates.append((x,y,z))
         self.convert_projected_to_screen(x, y, viewport)
         center_coordinates.append((screen_x, screen_y))  
+        print("those are the projections cords: ",projection_coordinates)
+        print("those are the world cords: ",world_coordinates)
         
         return world_coordinates, projection_coordinates, center_coordinates
 
     def convert_projected_to_screen(self, proj_x, proj_y, viewport):
         screen_x = int((1 + proj_x) * viewport[2] / 2 )
         screen_y = int((1 - proj_y) * viewport[3] / 2 )
-        print(screen_x, screen_y)
         return screen_x, screen_y
       
 if __name__ == "__main__":
