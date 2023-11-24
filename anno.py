@@ -24,8 +24,10 @@ class App:
         
         # initialize OpenGL
         glClearColor(0,0,0,1)
+        
+        glMatrixMode(GL_PROJECTION) # activate projection matrix
         gluPerspective(45, self.display[0]/self.display[1], 0.1, 50)
-       
+        
         # draw wired rectangle
         self.rectangle = RectangleMesh(1, 1, 1, [0,0,0], [0,0,-20]) 
         self.rectangle.draw_wired_rect()
@@ -59,22 +61,24 @@ class App:
                   
                    
                 if (event.type == KEYDOWN) and (event.key == K_RIGHT):
+                    
                     # random position of rectangle
                     self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
                     self.rectangle.set_translation(random.uniform(-5,5), random.uniform(-5,5), random.uniform(-10,-20))
                     self.rectangle.draw_wired_rect()
                     pg.time.wait(60)
                     
-                    print("random rotation: ", self.rectangle.eulers)
-                    print("random translation: ", self.rectangle.position)
+                    print(f"random rotation: {self.rectangle.eulers}")
+                    print(f"random translation: {self.rectangle.position}")
                     
                     # take screenshot && write rectangle data to CSV file
                     if (self.screenshot):
+                        
                         # calculate annotation
-                        #print("this is the MODELVIEW matrix: ",self.rectangle.modelview)
                         wc, pc, center = self.get_coordinates(self.rectangle.modelview, glGetDoublev(GL_PROJECTION_MATRIX), glGetDoublev(GL_VIEWPORT))
                         # write to json
                         write(rect_name, img_shot,  wc, pc, center)
+                        
                         if (rect_name == img_number):
                             self.save_image(rect_name, img_shot)
                             img_shot += 1
@@ -147,15 +151,19 @@ class App:
         # loop through rectangle vertices
         for vertex in self.rectangle.vertices:
             
-            vertex_new = vertex + (0,)  # tuple had only 3 elements
+            vertex_homogeen = vertex + (1,) # homogene cord
             transformed_vertex_world = [0,0,0,0]
-            transformed_vertex_projection = [0,0,0,0]
             
             # apply model-view matrix
             for i in range(4):
                 for j in range(4):
-                    transformed_vertex_world[i] += float(modelview_matrix[i][j] * vertex_new[j])
-                    
+                    transformed_vertex_world[i] += float(modelview_matrix[i][j] * vertex_homogeen[j])
+                   
+            for i in range(4):
+                transformed_vertex_world[i] = transformed_vertex_world[i] /  transformed_vertex_world[3]
+                
+            transformed_vertex_projection = [0,0,0,0]
+            
             # apply projection matrix -> those are normalized
             for i in range(4):
                 for j in range(4):
@@ -163,7 +171,7 @@ class App:
                     screen_x, screen_y = self.convert_projected_to_screen(transformed_vertex_projection[0], transformed_vertex_projection[1], viewport)
             
             
-            world_coordinates.append(tuple(transformed_vertex_world[:3]))
+            world_coordinates.append(transformed_vertex_world[:3])
             projection_coordinates.append((screen_x, screen_y))
             
         # center calculation 
@@ -175,14 +183,14 @@ class App:
         center_coordinates.append((x,y,z))
         self.convert_projected_to_screen(x, y, viewport)
         center_coordinates.append((screen_x, screen_y))  
-        print("those are the projections cords: ",projection_coordinates)
-        print("those are the world cords: ",world_coordinates)
+        print("those are the projections cords: \n",projection_coordinates)
+        print("those are the world cords: \n",world_coordinates)
         
         return world_coordinates, projection_coordinates, center_coordinates
 
     def convert_projected_to_screen(self, proj_x, proj_y, viewport):
-        screen_x = int((1 + proj_x) * viewport[2] / 2 )
-        screen_y = int((1 - proj_y) * viewport[3] / 2 )
+        screen_x = int((512/2) * (proj_x + 1))
+        screen_y = int((512/2) * (proj_y + 1))
         return screen_x, screen_y
       
 if __name__ == "__main__":
