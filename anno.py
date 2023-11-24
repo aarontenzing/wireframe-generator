@@ -114,22 +114,6 @@ class App:
         name = "wireframes\\img" + str(rect_name) + "_" + str(img_shot) + ".png"
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
         
-    def lighting_setup(self):
-        
-        glEnable(GL_DEPTH_TEST)
-        glEnable(GL_LIGHTING)
-        glEnable(GL_LIGHT0)
-
-        glLightfv(GL_LIGHT0, GL_POSITION, (0, 5, 0, 1))  # Set light position
-        
-        ambient_light = (0.2, 0.2, 0.2, 1)
-        diffuse_light = (0.8, 0.8, 0.8, 1)
-        specular_light = (1.0, 1.0, 1.0, 1)
-
-        glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light)
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light)
-        glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light)
-        
     def draw_axes(self):
         
         # X axis (red)
@@ -173,7 +157,7 @@ class App:
             for i in range(4):
                 for j in range(4):
                     transformed_vertex_projection[i] += float(projection_matrix[i][j] * vertex_new[j])
-                    screen_x, screen_y = convert_projected_to_screen(transformed_vertex_projection[0], transformed_vertex_projection[1], viewport)
+                    screen_x, screen_y = self.convert_projected_to_screen(transformed_vertex_projection[0], transformed_vertex_projection[1], viewport)
             
          
             world_coordinates.append(tuple(transformed_vertex_world[:3]))
@@ -186,41 +170,16 @@ class App:
         y = y-self.rectangle.height
         z = z-self.rectangle.depth
         center_coordinates.append((x,y,z))
-        convert_projected_to_screen(x, y, viewport)
+        self.convert_projected_to_screen(x, y, viewport)
         center_coordinates.append((screen_x, screen_y))  
         
         return world_coordinates, projection_coordinates, center_coordinates
 
-def convert_projected_to_screen(proj_x, proj_y, viewport):
-    screen_x = int((1 + proj_x) * viewport[2] / 2 )
-    screen_y = int((1 - proj_y) * viewport[3] / 2 )
-    print(screen_x, screen_y)
-    return screen_x, screen_y
-  
-    def get_coordinates2(self, modelview_matrix, projection_matrix, viewport):
-
-        projection_coordinates = []
-        world_coordinates = []
-        center_coordinates = []
-        # loop through rectangle vertices
-        for vertex in (self.rectangle.vertices + (self.rectangle.center,)):
-            # screen coordinates
-            x, y, z = ctypes.c_double(vertex[0]), ctypes.c_double(vertex[1]), ctypes.c_double(vertex[2])
-            
-            win_x, win_y, win_z = gluProject(x, y, z, modelview_matrix, projection_matrix, viewport)
-            # unproject screen coordinates to get world coordinates
-            world_x, world_y, world_z = gluUnProject(GLdouble(win_x), GLdouble(win_y), GLdouble(win_z), modelview_matrix, projection_matrix, viewport)
-            
-            if (vertex == (0,0,0)):
-                center_coordinates.append((world_x, world_y, world_z))
-                center_coordinates.append((win_x, win_y, win_z))
-            else:
-                # add pc cords to list
-                projection_coordinates.append((win_x, win_y, win_z))
-                # add wc cords to list
-                world_coordinates.append((world_x, world_y, world_z))
-            
-        return world_coordinates, projection_coordinates, center_coordinates
+    def convert_projected_to_screen(self, proj_x, proj_y, viewport):
+        screen_x = int((1 + proj_x) * viewport[2] / 2 )
+        screen_y = int((1 - proj_y) * viewport[3] / 2 )
+        print(screen_x, screen_y)
+        return screen_x, screen_y
       
 if __name__ == "__main__":
     myApp = App()
