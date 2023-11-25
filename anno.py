@@ -5,8 +5,7 @@ from OpenGL.GLU import *
 import numpy as np
 import random
 from rectangle import RectangleMesh
-from write_json import write
-from PIL import Image  # Import ImageGrab from the PIL library (Pillow)
+from write_json import write, clear_json
 
 class App:
 
@@ -21,6 +20,7 @@ class App:
         # activation variables 
         self.axes = 0
         self.screenshot = 1
+        clear_json()
         
         # initialize OpenGL
         glClearColor(0,0,0,1)
@@ -152,13 +152,15 @@ class App:
         for vertex in self.rectangle.vertices:
             
             vertex_homogeen = vertex + (1,) # homogene cord
+            
             transformed_vertex_world = [0,0,0,0]
             
             # apply model-view matrix
             for i in range(4):
                 for j in range(4):
                     transformed_vertex_world[i] += float(modelview_matrix[i][j] * vertex_homogeen[j])
-                   
+             
+            # normaliseren      
             for i in range(4):
                 transformed_vertex_world[i] = transformed_vertex_world[i] /  transformed_vertex_world[3]
                 
@@ -168,30 +170,34 @@ class App:
             for i in range(4):
                 for j in range(4):
                     transformed_vertex_projection[i] += float(projection_matrix[i][j] * transformed_vertex_world[j])
-                    screen_x, screen_y = self.convert_projected_to_screen(transformed_vertex_projection[0], transformed_vertex_projection[1], viewport)
             
+            print("vertex projection cords: ",transformed_vertex_projection)
             
+            # calculate screen cords     
+            screen_x, screen_y = self.convert_projected_to_screen(transformed_vertex_projection[0], transformed_vertex_projection[1], viewport)
+
+            # append to list
             world_coordinates.append(transformed_vertex_world[:3])
             projection_coordinates.append((screen_x, screen_y))
             
         # center calculation 
-        values = world_coordinates[0]
-        x, y, z = values[0], values[1], values[2]
-        x = x-self.rectangle.width
-        y = y-self.rectangle.height
-        z = z-self.rectangle.depth
-        center_coordinates.append((x,y,z))
-        self.convert_projected_to_screen(x, y, viewport)
-        center_coordinates.append((screen_x, screen_y))  
-        print("those are the projections cords: \n",projection_coordinates)
-        print("those are the world cords: \n",world_coordinates)
+        # values = world_coordinates[0]
+        # x, y, z = values[0], values[1], values[2]
+        # x = x-self.rectangle.width
+        # y = y-self.rectangle.height
+        # z = z-self.rectangle.depth
+        # center_coordinates.append((x,y,z))
+        # self.convert_projected_to_screen(x, y, viewport)
+        # center_coordinates.append((screen_x, screen_y))  
+        #print("those are the projections cords: \n",projection_coordinates)
+        #print("those are the world cords: \n",world_coordinates)
         
         return world_coordinates, projection_coordinates, center_coordinates
 
     def convert_projected_to_screen(self, proj_x, proj_y, viewport):
-        screen_x = int((512/2) * (proj_x + 1))
-        screen_y = int((512/2) * (proj_y + 1))
-        return screen_x, screen_y
+        screen_x = (1 + proj_x) * (viewport[2] * 0.5)
+        screen_y = (1 - proj_y) * (viewport[2] * 0.5)
+        return int(screen_x), int(screen_y)
       
 if __name__ == "__main__":
     myApp = App()
