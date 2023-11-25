@@ -116,6 +116,7 @@ class App:
         print("taking screenshot...")
         pixels = glReadPixels(0, 0, self.display[0], self.display[1], GL_RGB, GL_UNSIGNED_BYTE) 
         image = pg.image.frombuffer(pixels, (self.display[0], self.display[1]), 'RGB') # read pixels from the OpenGL buffer
+        image = pg.transform.flip(image, False, True) # flip
         name = "wireframes\\img" + str(rect_name) + "_" + str(img_shot) + ".png"
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
         
