@@ -5,7 +5,7 @@ from OpenGL.GLU import *
 import numpy as np
 import random
 from rectangle import RectangleMesh
-from write_json import write, clear_json
+from handle_json import write, clear_json
 
 class App:
 
@@ -29,7 +29,7 @@ class App:
         gluPerspective(45, self.display[0]/self.display[1], 0.1, 50)
         self.projectionmatrix = glGetDoublev(GL_PROJECTION_MATRIX)
         # draw wired rectangle
-        self.rectangle = RectangleMesh(1, 1, 1, [0,0,0], [0,0,-20]) 
+        self.rectangle = RectangleMesh(random.uniform(0.1,5), random.uniform(0.1,5), random.uniform(0.1,5), [0,0,0], [0,0,-15]) 
         self.rectangle.draw_wired_rect()
         
         self.mainLoop()
@@ -75,7 +75,7 @@ class App:
                     if (self.screenshot):
                         
                         # calculate annotation
-                        wc, pc, center = self.get_coordinates(self.rectangle.modelview, self.projectionmatrix, glGetDoublev(GL_VIEWPORT))
+                        wc, pc, center = self.get_annotations(self.rectangle.modelview, self.projectionmatrix, glGetIntegerv(GL_VIEWPORT))
                         # write to json
                         write(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center)
                         
@@ -116,7 +116,7 @@ class App:
         print("taking screenshot...")
         pixels = glReadPixels(0, 0, self.display[0], self.display[1], GL_RGB, GL_UNSIGNED_BYTE) 
         image = pg.image.frombuffer(pixels, (self.display[0], self.display[1]), 'RGB') # read pixels from the OpenGL buffer
-        image = pg.transform.flip(image, False, True) # flip
+        #image = pg.transform.flip(image, False, True) # flip
         name = "wireframes\\img" + str(rect_name) + "_" + str(img_shot) + ".png"
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
         
@@ -142,61 +142,28 @@ class App:
         glVertex3f(0, 0, 0)
         glVertex3f(0, 0, 5)
         glEnd()      
-
-    def get_coordinates(self, modelview_matrix, projection_matrix, viewport):
-        
-        print(modelview_matrix)
+    
+    def get_annotations(self, model_view, projection, viewport):
+        # Calculate world and pixel cords of vertices rectangle
         world_coordinates = []
-        projection_coordinates = []
-        center_coordinates = [] # consists of 2 elements: world and projection coordinates
-        # loop through rectangle vertices
+        pixel_coordinates = []
+        center = []
         for vertex in self.rectangle.vertices:
-            
-            vertex_homogeen = vertex + (1,) # homogene cord
-            
-            transformed_vertex_world = [0,0,0,0]
-            
-            # apply model-view matrix
-            for i in range(4):
-                for j in range(4):
-                    transformed_vertex_world[i] += float(modelview_matrix[i][j] * vertex_homogeen[j])
-             
-            # normaliseren      
-            for i in range(4):
-                transformed_vertex_world[i] = transformed_vertex_world[i] /  transformed_vertex_world[3]
-                
-            transformed_vertex_projection = [0,0,0,0]
-            
-            # apply projection matrix -> those are normalized
-            for i in range(4):
-                for j in range(4):
-                    transformed_vertex_projection[i] += float(projection_matrix[i][j] * transformed_vertex_world[j])
-            
-            print("vertex projection cords: ",transformed_vertex_projection)
-            
-            # calculate screen cords     
-            screen_x, screen_y = self.convert_projected_to_screen(transformed_vertex_projection[0], transformed_vertex_projection[1], viewport)
-
-            # append to list
-            world_coordinates.append(transformed_vertex_world[:3])
-            projection_coordinates.append((screen_x, screen_y))
-            
-        # center calculation 
-        # values = world_coordinates[0]
-        # x, y, z = values[0], values[1], values[2]
-        # x = x-self.rectangle.width
-        # y = y-self.rectangle.height
-        # z = z-self.rectangle.depth
-        # center_coordinates.append((x,y,z))
-        # self.convert_projected_to_screen(x, y, viewport)
-        # center_coordinates.append((screen_x, screen_y))  
+            x_screen, y_screen, z =  gluProject(vertex[0], vertex[1], vertex[2], model_view, projection, viewport)
+            pixel_coordinates.append((int(x_screen),int(y_screen)))
+            x_world, y_world, z_world = gluUnProject( x_screen, y_screen, 0, model_view, projection, viewport)
+            world_coordinates.append((x_world, y_world, z_world))
         
-        return world_coordinates, projection_coordinates, center_coordinates
-
-    def convert_projected_to_screen(self, proj_x, proj_y, viewport):
-        screen_x = (1 + proj_x) * (viewport[2] * 0.5)
-        screen_y = (1 - proj_y) * (viewport[2] * 0.5)
-        return int(screen_x), int(screen_y)
+        print("pixel coordinates: ",pixel_coordinates)
+        print("world coordinates: ",world_coordinates)
+        
+        # Calculate center
+        x_screen, y_screen, z = gluProject(0, 0, 0, model_view, projection, viewport)
+        x_world, y_world, z_world = gluUnProject( x_screen, y_screen, 0, model_view, projection, viewport)
+        center.append((x_world, y_world, z_world))
+        center.append((int(x_screen), int(y_screen)))
+        
+        return world_coordinates, pixel_coordinates, center
       
 if __name__ == "__main__":
     myApp = App()

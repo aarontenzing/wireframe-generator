@@ -27,7 +27,6 @@ def write(rectangle, shot, whd, world_coordinates, projection_coordinates, cente
         
 
 def clear_json():
-    # Open a JSON file in write mode (creates the file if it doesn't exist)
+    # clear the json file 
     with open("annotations.json", "w") as file:
-        # Use the `truncate()` method to clear the file's content
         file.truncate()
