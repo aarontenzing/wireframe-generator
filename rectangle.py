@@ -43,10 +43,10 @@ class RectangleMesh:
         )
     
     def set_translation(self, pos_x, pos_y , pos_z):
-        self.position = np.array((pos_x, pos_y, pos_z),dtype=np.float32)
+        self.position = np.array((pos_x, pos_y, pos_z), dtype=np.float32)
     
     def set_rotation(self, rot_x, rot_y, rot_z):
-        self.eulers = np.array((rot_x, rot_y, rot_z),dtype=np.float32)
+        self.eulers = np.array((rot_x, rot_y, rot_z), dtype=np.float32)
 
     def draw_wired_rect(self):
         
@@ -73,8 +73,6 @@ class RectangleMesh:
             for vertex in edge:
                 glVertex3fv(self.vertices[vertex])
         glEnd()
-        
-        # Set material properties
         
         glColor3f(0.0, 0.0, 0.0)  
     
@@ -120,8 +118,9 @@ class RectangleMesh:
         
         glPopMatrix()
 
-    def write_dim_csv(self):
+    def get_norm_dim(self):
         # normalize dimensions
         w = self.width / self.height
         h = 1
         d = self.depth / self.height
+        return [w,h,d]

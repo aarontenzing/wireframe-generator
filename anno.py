@@ -27,7 +27,7 @@ class App:
         
         glMatrixMode(GL_PROJECTION) # activate projection matrix
         gluPerspective(45, self.display[0]/self.display[1], 0.1, 50)
-        
+        self.projectionmatrix = glGetDoublev(GL_PROJECTION_MATRIX)
         # draw wired rectangle
         self.rectangle = RectangleMesh(1, 1, 1, [0,0,0], [0,0,-20]) 
         self.rectangle.draw_wired_rect()
@@ -75,9 +75,9 @@ class App:
                     if (self.screenshot):
                         
                         # calculate annotation
-                        wc, pc, center = self.get_coordinates(self.rectangle.modelview, glGetDoublev(GL_PROJECTION_MATRIX), glGetDoublev(GL_VIEWPORT))
+                        wc, pc, center = self.get_coordinates(self.rectangle.modelview, self.projectionmatrix, glGetDoublev(GL_VIEWPORT))
                         # write to json
-                        write(rect_name, img_shot,  wc, pc, center)
+                        write(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center)
                         
                         if (rect_name == img_number):
                             self.save_image(rect_name, img_shot)
@@ -190,8 +190,6 @@ class App:
         # center_coordinates.append((x,y,z))
         # self.convert_projected_to_screen(x, y, viewport)
         # center_coordinates.append((screen_x, screen_y))  
-        #print("those are the projections cords: \n",projection_coordinates)
-        #print("those are the world cords: \n",world_coordinates)
         
         return world_coordinates, projection_coordinates, center_coordinates
 
