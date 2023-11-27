@@ -54,11 +54,6 @@ class App:
                 if (event.type == KEYDOWN) and (event.key == K_a):
                     # draw axes
                     self.axes = not self.axes
-                    
-                if (event.type == KEYDOWN) and (event.key == K_p):
-                    # draw axes
-                    print(self.rectangle.eulers)
-                  
                    
                 if (event.type == KEYDOWN) and (event.key == K_RIGHT):
                     
@@ -76,8 +71,10 @@ class App:
                         
                         # calculate annotation
                         wc, pc, center = self.get_annotations(self.rectangle.modelview, self.projectionmatrix, glGetIntegerv(GL_VIEWPORT))
+                        # check if rectangle valid
+                        valid = self.object_on_screen(pc)
                         # write to json
-                        write(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center)
+                        write(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center, valid)
                         
                         if (rect_name == img_number):
                             self.save_image(rect_name, img_shot)
@@ -103,6 +100,9 @@ class App:
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
                 
                 self.rectangle.draw_wired_rect()
+                
+                if (self.axes):
+                    self.draw_axes()
                     
                 pg.display.flip()
                 pg.time.wait(60)
@@ -121,7 +121,8 @@ class App:
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
         
     def draw_axes(self):
-        
+        glPushMatrix()
+        glTranslatef(0,0,-15)
         # X axis (red)
         glBegin(GL_LINES)
         glColor3f(1, 0, 0)
@@ -141,7 +142,8 @@ class App:
         glColor3f(0, 0, 1)
         glVertex3f(0, 0, 0)
         glVertex3f(0, 0, 5)
-        glEnd()      
+        glEnd()   
+        glPopMatrix()   
     
     def get_annotations(self, model_view, projection, viewport):
         # Calculate world and pixel cords of vertices rectangle
@@ -164,6 +166,14 @@ class App:
         center.append((int(x_screen), int(y_screen)))
         
         return world_coordinates, pixel_coordinates, center
+
+    def object_on_screen(self, projection_coordinates):
+        for i in projection_coordinates:
+            if (i[0] not in range(0,self.display[0]+1) or i[1] not in range(0,self.display[1]+1)):
+                return "false"
+            else:
+                continue
+        return "true"       
       
 if __name__ == "__main__":
     myApp = App()

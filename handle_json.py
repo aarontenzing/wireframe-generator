@@ -1,7 +1,7 @@
 import json
 import numpy 
 
-def write(rectangle, shot, whd, world_coordinates, projection_coordinates, center):
+def write(rectangle, shot, whd, world_coordinates, projection_coordinates, center, valid):
     
     # data written to csv
     data = {
@@ -10,7 +10,8 @@ def write(rectangle, shot, whd, world_coordinates, projection_coordinates, cente
                 "whd"   : whd,
                 "world" : world_coordinates,
                 "projection" : projection_coordinates,
-                "center" : center
+                "center" : center,
+                "valid" : valid
             }
     
     with open("annotations.json", "r") as file:
