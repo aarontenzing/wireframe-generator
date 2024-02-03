@@ -9,7 +9,7 @@ from handle_json import write, clear_json
 
 class App:
 
-    def __init__(self):
+    def __init__(self, manual):
 
         # initialize pygame for GUI
         pg.init() 
@@ -32,7 +32,8 @@ class App:
         self.rectangle = RectangleMesh(random.uniform(0.1,5), random.uniform(0.1,5), random.uniform(0.1,5), [0,0,0], [0,0,-15]) 
         self.rectangle.draw_wired_rect()
         
-        self.mainLoop()
+        if (manual):
+            self.mainLoop()
 
     def mainLoop(self):
         rect_name = 1  
@@ -156,8 +157,8 @@ class App:
             x_world, y_world, z_world = gluUnProject( x_screen, y_screen, 0, model_view, projection, viewport)
             world_coordinates.append((x_world, y_world, z_world))
         
-        print("pixel coordinates: ",pixel_coordinates)
-        print("world coordinates: ",world_coordinates)
+        #print("pixel coordinates: ",pixel_coordinates)
+        #print("world coordinates: ",world_coordinates)
         
         # Calculate center
         x_screen, y_screen, z = gluProject(0, 0, 0, model_view, projection, viewport)
@@ -173,8 +174,48 @@ class App:
                 return "false"
             else:
                 continue
-        return "true"       
+        return "true"        
+    
+    def generate_random_rectangle(self, amount, shots):
+        rect_name = 0  
+        img_number = 1 # counts the rectangle that is been shown
+        img_shot = 1 # counts how many screenshots were taken
+        for i in range(amount):
+            del self.rectangle
+            self.rectangle = RectangleMesh(random.uniform(0.1,4), random.uniform(0.1,4), random.uniform(0.1,4), [0,0,0], [0,0,-15])   
+            rect_name += 1       
+            print("created rectangle", rect_name)
+            for j in range(shots):
+                self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
+                self.rectangle.set_translation(random.uniform(-3,3), random.uniform(-3,3), random.uniform(-10,-20))
+                self.rectangle.draw_wired_rect()
+                pg.time.wait(60)
+                # calculate annotationn
+                wc, pc, center = self.get_annotations(self.rectangle.modelview, self.projectionmatrix, glGetIntegerv(GL_VIEWPORT))
+                # check if rectangle valid
+                valid = self.object_on_screen(pc)
+                # write to json
+                write(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center, valid)
+                        
+                if (rect_name == img_number):
+                    self.save_image(rect_name, img_shot)
+                    img_shot += 1
+                else:
+                    img_number += 1  
+                    rect_name = img_number   
+                    img_shot = 1
+                    self.save_image(rect_name, img_shot)
+                    img_shot += 1  
+                    
       
 if __name__ == "__main__":
-    myApp = App()
-
+    
+    manual = input("Do you want to manually annotate the rectangles? (y/n)")
+    if (manual == "y"):
+        myApp = App(True)
+    else:
+        myApp = App(False)
+        amount = input("How many rectangles do you want to generate? ")
+        shots = input("How many shots per rectangle? ")
+        myApp.generate_random_rectangle(int(amount), int(shots))
+        
