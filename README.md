@@ -3,7 +3,7 @@
 - With these wireframes, we can generate controlled stable diffusion images.
 - These synthetic images can then be utilized for fine-tuning our model.
 
-<p align="center">
+<p align="left" width="100%">
 <img src="example.JPG">
 </p>
 # Controls
