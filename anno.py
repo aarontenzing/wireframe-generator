@@ -29,6 +29,17 @@ class App:
         # Check if the directory exists, if not create it
         if not os.path.exists(self.wireframes_dir):
             os.makedirs(self.wireframes_dir)
+            
+        # Clearing directory
+        for file_name in os.listdir(self.wireframes_dir):
+            file_path = os.path.join(self.wireframes_dir, file_name)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Failed to delete {file_path}. Reason: {e}")
+
+        
         
         # initialize OpenGL
         glClearColor(0,0,0,1)
