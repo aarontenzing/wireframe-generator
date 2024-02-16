@@ -1,5 +1,4 @@
-# 3d-parcel-annotation-tool
-Tool for generating synthetic data. 
-With these wireframes we can generate controled stable diffusion images.
-These images can then be used for fine-tuning our model. 
-
+# Generating wireframes
+- A tool capable of generating wireframe model images on a large scale.
+- With these wireframes, we can generate controlled stable diffusion images.
+- These synthetic images can then be utilized for fine-tuning our model.
