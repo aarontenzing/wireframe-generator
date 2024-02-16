@@ -5,6 +5,7 @@ from OpenGL.GLU import *
 import random
 from rectangle import RectangleMesh
 from handle_json import write_json, clear_json
+import os
 
 class App:
 
@@ -20,6 +21,14 @@ class App:
         self.axes = 0
         self.screenshot = 1
         clear_json()
+        
+        # get the base directory
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        self.wireframes_dir = os.path.join(BASE_DIR, 'wireframes')
+        
+        # Check if the directory exists, if not create it
+        if not os.path.exists(self.wireframes_dir):
+            os.makedirs(self.wireframes_dir)
         
         # initialize OpenGL
         glClearColor(0,0,0,1)
@@ -117,7 +126,8 @@ class App:
         pixels = glReadPixels(0, 0, self.display[0], self.display[1], GL_RGB, GL_UNSIGNED_BYTE) 
         image = pg.image.frombuffer(pixels, (self.display[0], self.display[1]), 'RGB') # read pixels from the OpenGL buffer
         #image = pg.transform.flip(image, False, True) # flip
-        name = "wireframes\\img" + str(rect_name) + "_" + str(img_shot) + ".png"
+        #name = "wireframes\\img" + str(rect_name) + "_" + str(img_shot) + ".png"
+        name = os.path.join(self.wireframes_dir, f"img{rect_name}_{img_shot}.png")
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
         
     def draw_axes(self):
@@ -209,12 +219,12 @@ class App:
       
 if __name__ == "__main__":
     
-    manual = input("Do you want to manually generate the rectangles? (y/n) ")
+    manual = input("Do you want to manually generate wireframes? (y/n) ")
     if (manual == "y"):
         myApp = App(True)
     else:
         myApp = App(False)
-        amount = input("How many rectangles do you want to generate? ")
-        shots = input("How many shots per rectangle? ")
+        amount = input("How many wireframes do you want to generate? ")
+        shots = input("How many shots per wireframe? ")
         myApp.generate_random_rectangle(int(amount), int(shots))
         
