@@ -6,6 +6,7 @@
 <p align="left" width="100%">
 <img src="example.JPG">
 </p>
+
 # Controls
 
 There are two ways of using this tool: manually and automatically.
