@@ -1,7 +1,7 @@
 import json
 import numpy 
 
-def write(rectangle, shot, whd, world_coordinates, projection_coordinates, center, valid):
+def write_json(rectangle, shot, whd, world_coordinates, projection_coordinates, center, valid):
     
     # data written to csv
     data = {

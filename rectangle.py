@@ -1,7 +1,6 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import numpy as np
-import random
 
 class RectangleMesh:
 
@@ -12,7 +11,7 @@ class RectangleMesh:
         self.depth = depth/2
         self.eulers= np.array(eulers, dtype=np.float32) # angle
         self.position= np.array(position, dtype=np.float32) # position
-        self.center = (0,0,0,0) # drew rect around 0
+        self.center = (0,0,0,0) # drew rect around (0,0,0)
         self.modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
         
         # Cube vertices and edges
@@ -74,7 +73,7 @@ class RectangleMesh:
                 glVertex3fv(self.vertices[vertex])
         glEnd()
         
-        glColor3f(0.0, 0.0, 0.0)  
+        glColor3f(0.0, 0.0, 0.0)  # solid rectangles in black, to only show the visible wireframe ribbons
     
         glBegin(GL_QUADS)
         # front plane
@@ -114,7 +113,7 @@ class RectangleMesh:
         glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
         glEnd()
         
-        self.modelview = glGetDoublev(GL_MODELVIEW_MATRIX) # modelview matrix saven
+        self.modelview = glGetDoublev(GL_MODELVIEW_MATRIX) # save the modelview matrix 
         
         glPopMatrix()
 

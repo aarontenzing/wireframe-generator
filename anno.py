@@ -2,10 +2,9 @@ import pygame as pg
 from pygame import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-import numpy as np
 import random
 from rectangle import RectangleMesh
-from handle_json import write, clear_json
+from handle_json import write_json, clear_json
 
 class App:
 
@@ -75,7 +74,7 @@ class App:
                         # check if rectangle valid
                         valid = self.object_on_screen(pc)
                         # write to json
-                        write(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center, valid)
+                        write_json(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center, valid)
                         
                         if (rect_name == img_number):
                             self.save_image(rect_name, img_shot)
@@ -195,7 +194,7 @@ class App:
                 # check if rectangle valid
                 valid = self.object_on_screen(pc)
                 # write to json
-                write(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center, valid)
+                write_json(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center, valid)
                         
                 if (rect_name == img_number):
                     self.save_image(rect_name, img_shot)
@@ -210,7 +209,7 @@ class App:
       
 if __name__ == "__main__":
     
-    manual = input("Do you want to manually annotate the rectangles? (y/n)")
+    manual = input("Do you want to manually generate the rectangles? (y/n) ")
     if (manual == "y"):
         myApp = App(True)
     else:
