@@ -7,6 +7,10 @@
 <img src="example.JPG">
 </p>
 
+# How to run?
+- pip install -r requirements.txt
+- run: python generator.py 
+  
 # Controls
 
 There are two ways of using this tool: manually and automatically.
