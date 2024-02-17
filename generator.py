@@ -190,7 +190,6 @@ class App:
     def object_on_screen(self, projection_coordinates):
         outside = 0
         for i in projection_coordinates:
-            print(range(0,self.display[0]+1))
             if (i[0] not in range(0,self.display[0]) or i[1] not in range(0,self.display[1])):
                 outside += 1
                 if (outside == 3):
