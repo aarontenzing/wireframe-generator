@@ -64,7 +64,7 @@ class RectangleMesh:
         
         glEnable(GL_LINE_SMOOTH)  # Enable line smoothing
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)  # Use the highest quality for line smoothing
-        glLineWidth(2.5)
+        glLineWidth(2)
         
         glBegin(GL_LINES)
         glColor3f(1.0, 1.0, 1.0)  
