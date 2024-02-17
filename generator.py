@@ -43,15 +43,13 @@ class App:
                     os.unlink(file_path)
             except Exception as e:
                 print(f"Failed to delete {file_path}. Reason: {e}")
-
-        
         
         # initialize OpenGL
         glClearColor(0,0,0,1)
-        
         glMatrixMode(GL_PROJECTION) # activate projection matrix
         gluPerspective(45, self.display[0]/self.display[1], 0.1, 50)
         self.projectionmatrix = glGetDoublev(GL_PROJECTION_MATRIX)
+        
         # draw wired rectangle
         self.rectangle = RectangleMesh(random.uniform(0.1,5), random.uniform(0.1,5), random.uniform(0.1,5), [0,0,0], [0,0,-15]) 
         self.rectangle.draw_wired_rect()
@@ -61,8 +59,8 @@ class App:
 
     def mainLoop(self):
         rect_name = 1  
-        img_number = 1 # counts the rectangle that is been shown
-        img_shot = 1 # counts how many screenshots were taken
+        count = 1 # counts the rectangle that is been shown
+        img_shot = 0 # counts how many screenshots were taken
         
         running = True
         while(running):
@@ -86,7 +84,7 @@ class App:
                     self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
                     self.rectangle.set_translation(random.uniform(-5,5), random.uniform(-5,5), random.uniform(-10,-20))
                     self.rectangle.draw_wired_rect()
-                    pg.time.wait(60)
+                    pg.time.wait(60) # wait 60ms till complete the drawing
                     
                     print(f"random rotation: {self.rectangle.eulers}")
                     print(f"random translation: {self.rectangle.position}")
@@ -94,32 +92,23 @@ class App:
                     # take screenshot && write rectangle data to CSV file
                     if (self.screenshot):
                         
-                        # calculate annotation
-                        wc, pc, center = self.get_annotations(self.rectangle.modelview, self.projectionmatrix, glGetIntegerv(GL_VIEWPORT))
-                        # check if rectangle valid
-                        valid = self.object_on_screen(pc)
-                        # write to json
-                        write_json(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center, valid)
-                        
-                        if (rect_name == img_number):
-                            self.save_image(rect_name, img_shot)
+                        if (rect_name == count):
                             img_shot += 1
-                        else:
-                            img_number += 1  
-                            rect_name = img_number   
+                            self.save_image(rect_name, img_shot)
+                            self.write_annotations(rect_name, img_shot)
+                        else: # reset image shot count
+                            count = rect_name 
                             img_shot = 1
                             self.save_image(rect_name, img_shot)
-                            img_shot += 1    
-                        
+                            self.write_annotations(rect_name, img_shot)       
 
                 if (event.type == KEYDOWN) and (event.key == K_RETURN):
+                    rect_name += 1 # counts the rectangle that is been shown
                     print("delete rectangle...")
                     del self.rectangle
                     # new size of rectangle
                     self.rectangle = RectangleMesh(random.uniform(0.1,5), random.uniform(0.1,5), random.uniform(0.1,5), [0,0,0], [0,0,-15])   
                     print("created rectangle: ", self.rectangle.width, self.rectangle.height, self.rectangle.depth)
-                    # rectangle name count
-                    rect_name += 1
                     
                 # --- Drawing the scene --- #
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -136,7 +125,12 @@ class App:
           
     def quit(self):
         pg.quit()
-
+    
+    def write_annotations(self, rect_name, img_shot):
+        wc, pc, center = self.get_annotations(self.rectangle.modelview, self.projectionmatrix, glGetIntegerv(GL_VIEWPORT)) # calculate annotation
+        valid = self.object_on_screen(pc)  # check if rectangle valid
+        write_json(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center, valid) # write to json
+    
     def save_image(self, rect_name, img_shot):
         print("taking screenshot...")
         pixels = glReadPixels(0, 0, self.display[0], self.display[1], GL_RGB, GL_UNSIGNED_BYTE) 
@@ -194,44 +188,45 @@ class App:
         return world_coordinates, pixel_coordinates, center
 
     def object_on_screen(self, projection_coordinates):
+        outside = 0
         for i in projection_coordinates:
-            if (i[0] not in range(0,self.display[0]+1) or i[1] not in range(0,self.display[1]+1)):
-                return "false"
+            print(range(0,self.display[0]+1))
+            if (i[0] not in range(0,self.display[0]) or i[1] not in range(0,self.display[1])):
+                outside += 1
+                if (outside == 3):
+                    return "false"
             else:
                 continue
+
         return "true"        
     
     def generate_random_rectangle(self, amount, shots):
         rect_name = 0  
-        img_number = 1 # counts the rectangle that is been shown
-        img_shot = 1 # counts how many screenshots were taken
+        count = 1 # counts the rectangle that is been shown
+        img_shot = 0 # counts how many screenshots were taken
         for i in range(amount):
             del self.rectangle
             self.rectangle = RectangleMesh(random.uniform(0.1,4), random.uniform(0.1,4), random.uniform(0.1,4), [0,0,0], [0,0,-15])   
             rect_name += 1       
             print("created rectangle", rect_name)
             for j in range(shots):
+                # random position of rectangle
                 self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
                 self.rectangle.set_translation(random.uniform(-3,3), random.uniform(-3,3), random.uniform(-10,-20))
                 self.rectangle.draw_wired_rect()
                 pg.time.wait(60)
-                # calculate annotationn
-                wc, pc, center = self.get_annotations(self.rectangle.modelview, self.projectionmatrix, glGetIntegerv(GL_VIEWPORT))
-                # check if rectangle valid
-                valid = self.object_on_screen(pc)
-                # write to json
-                write_json(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center, valid)
                         
-                if (rect_name == img_number):
-                    self.save_image(rect_name, img_shot)
-                    img_shot += 1
-                else:
-                    img_number += 1  
-                    rect_name = img_number   
-                    img_shot = 1
-                    self.save_image(rect_name, img_shot)
-                    img_shot += 1  
-                    
+                # take screenshot && write rectangle data to CSV file
+                if (self.screenshot):       
+                    if (rect_name == count):
+                        img_shot += 1
+                        self.save_image(rect_name, img_shot)
+                        self.write_annotations(rect_name, img_shot)
+                    else: # reset image shot count
+                        count = rect_name 
+                        img_shot = 1
+                        self.save_image(rect_name, img_shot)
+                        self.write_annotations(rect_name, img_shot)  
       
 if __name__ == "__main__":
     
