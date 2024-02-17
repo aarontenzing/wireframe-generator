@@ -17,6 +17,7 @@ class App:
         self.screen = pg.display.set_mode(self.display, pg.OPENGL|pg.DOUBLEBUF) # tell pygame we run OPENGL & DOUBLEBUFFERING, one frame vis & one drawing
         pg.display.set_caption("Wireframe generator")
         
+        
         # activation variables 
         self.axes = 0
         self.screenshot = 1
@@ -25,10 +26,14 @@ class App:
         # get the base directory
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         self.wireframes_dir = os.path.join(BASE_DIR, 'wireframes')
+        icon = os.path.join(BASE_DIR, 'images_sd')
+        icon = os.path.join(icon, 'rect.png')
         
         # Check if the directory exists, if not create it
         if not os.path.exists(self.wireframes_dir):
             os.makedirs(self.wireframes_dir)
+            
+        pg.display.set_icon(pg.image.load(icon))    
             
         # Clearing directory
         for file_name in os.listdir(self.wireframes_dir):
