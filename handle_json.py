@@ -11,7 +11,7 @@ def write_json(rectangle, shot, whd, world_coordinates, projection_coordinates, 
                 "world" : world_coordinates,
                 "projection" : projection_coordinates,
                 "center" : center,
-                "valid" : valid
+                "visible" : valid
             }
     
     with open("annotations.json", "r") as file:
