@@ -47,11 +47,13 @@ class App:
         # initialize OpenGL
         glClearColor(0,0,0,1)
         glMatrixMode(GL_PROJECTION) # activate projection matrix
-        gluPerspective(45, self.display[0]/self.display[1], 0.1, 50)
+        gluPerspective(45, self.display[0]/self.display[1], 0.1, 100)
         self.projectionmatrix = glGetDoublev(GL_PROJECTION_MATRIX)
         
         # draw wired rectangle
-        self.rectangle = RectangleMesh(random.uniform(0.1,5), random.uniform(0.1,5), random.uniform(0.1,5), [0,0,0], [0,0,-15]) 
+        glMatrixMode(GL_MODELVIEW) # activate modelview matrix
+        gluLookAt(0, 0, -15, 0, 0, 0, 0, 1,0) # set camera position (eye, center, up)
+        self.rectangle = RectangleMesh(random.uniform(0.1,5), random.uniform(0.1,5), random.uniform(0.1,5), [0,0,0], [0,0,0]) 
         self.rectangle.draw_wired_rect()
         
         if (manual):
@@ -61,7 +63,7 @@ class App:
         rect_name = 1  
         count = 1 # counts the rectangle that is been shown
         img_shot = 0 # counts how many screenshots were taken
-        
+        step = 1
         running = True
         while(running):
             # Check for events
@@ -69,47 +71,81 @@ class App:
                 
                 if (event.type == pg.QUIT):
                     running = False
-                    
-                if (event.type == KEYDOWN) and (event.key == K_s):
-                    # enable screenshots
-                    self.screenshot = not self.screenshot 
                 
-                if (event.type == KEYDOWN) and (event.key == K_a):
-                    # draw axes
-                    self.axes = not self.axes
+                if (event.type == pg.KEYDOWN):
                    
-                if (event.type == KEYDOWN) and (event.key == K_RIGHT):
+                    if (event.key == K_s):
+                        # enable screenshots
+                        self.screenshot = not self.screenshot 
                     
-                    # random position of rectangle
-                    self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
-                    self.rectangle.set_translation(random.uniform(-5,5), random.uniform(-5,5), random.uniform(-10,-20))
-                    self.rectangle.draw_wired_rect()
-                    pg.time.wait(60) # wait 60ms till complete the drawing
+                    if (event.key == K_r):
+                        # reset position of rectangle
+                        self.rectangle.translate('reset', step)
                     
-                    print(f"random rotation: {self.rectangle.eulers}")
-                    print(f"random translation: {self.rectangle.position}")
-                    
-                    # take screenshot && write rectangle data to CSV file
-                    if (self.screenshot):
-                        
-                        if (rect_name == count):
-                            img_shot += 1
-                            self.save_image(rect_name, img_shot)
-                            self.write_annotations(rect_name, img_shot)
-                        else: # reset image shot count
-                            count = rect_name 
-                            img_shot = 1
-                            self.save_image(rect_name, img_shot)
-                            self.write_annotations(rect_name, img_shot)       
+                    if (event.key == K_PAGEUP):
+                        self.rectangle.translate('forward', step) 
+                               
+                    if (event.key == K_PAGEDOWN):
+                        self.rectangle.translate('backward', step)     
+                             
+                    if (event.key == K_UP):
+                        self.rectangle.translate('up', step)
 
-                if (event.type == KEYDOWN) and (event.key == K_RETURN):
-                    rect_name += 1 # counts the rectangle that is been shown
-                    print("delete rectangle...")
-                    del self.rectangle
-                    # new size of rectangle
-                    self.rectangle = RectangleMesh(random.uniform(0.1,5), random.uniform(0.1,5), random.uniform(0.1,5), [0,0,0], [0,0,-15])   
-                    print("created rectangle: ", self.rectangle.width, self.rectangle.height, self.rectangle.depth)
+                    if (event.key == K_DOWN):
+                        self.rectangle.translate('down', step)
+                        
+                    if (event.key == K_RIGHT):
+                        self.rectangle.translate('left', step)
                     
+                    if (event.key == K_LEFT):
+                        self.rectangle.translate('right', step)
+                    
+                    if (event.key == K_u):
+                        if (step < 0.1):
+                            step *= 2
+                        else:
+                            step += 0.1
+                            print('Step increment: ', float(step))
+                            
+                    if (event.key == K_d):
+                        step /= 2
+                        print('Step decrement: ', float(step))
+                    
+                    if (event.key == K_a):
+                        # draw axes
+                        self.axes = not self.axes
+                    
+                    if (event.key == K_SPACE):
+                        # random position of rectangle
+                        self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
+                        self.rectangle.set_translation(random.uniform(-4,4), random.uniform(0,4), 0)
+                        self.rectangle.draw_wired_rect()
+                        pg.time.wait(60) # wait 60ms till complete the drawing
+                        
+                        print(f"random rotation: {self.rectangle.eulers}")
+                        print(f"random translation: {self.rectangle.position}")
+                        
+                        # take screenshot && write rectangle data to CSV file
+                        if (self.screenshot):
+                            
+                            if (rect_name == count):
+                                img_shot += 1
+                                self.save_image(rect_name, img_shot)
+                                self.write_annotations(rect_name, img_shot)
+                            else: # reset image shot count
+                                count = rect_name 
+                                img_shot = 1
+                                self.save_image(rect_name, img_shot)
+                                self.write_annotations(rect_name, img_shot)       
+
+                    if (event.key == K_RETURN):
+                        rect_name += 1 # counts the rectangle that is been shown
+                        print("delete rectangle...")
+                        del self.rectangle
+                        # new size of rectangle
+                        self.rectangle = RectangleMesh(random.uniform(1,5), random.uniform(1,5), random.uniform(1,5), [0,0,0], [0,0,0])   
+                        print("created rectangle: ", self.rectangle.width, self.rectangle.height, self.rectangle.depth)
+                        
                 # --- Drawing the scene --- #
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
                 
@@ -205,34 +241,33 @@ class App:
         img_shot = 0 # counts how many screenshots were taken
         for i in range(amount):
             del self.rectangle
-            self.rectangle = RectangleMesh(random.uniform(0.1,4), random.uniform(0.1,4), random.uniform(0.1,4), [0,0,0], [0,0,-15])   
+            self.rectangle = RectangleMesh(random.uniform(1,5), random.uniform(1,5), random.uniform(1,5), [0,0,0], [0,0,0])   
             rect_name += 1       
             print("created rectangle", rect_name)
             for j in range(shots):
                 # random position of rectangle
                 self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
-                self.rectangle.set_translation(random.uniform(-3,3), random.uniform(-3,3), random.uniform(-10,-20))
+                self.rectangle.set_translation(random.uniform(-4,4), random.uniform(0,4), 0)
                 self.rectangle.draw_wired_rect()
                 pg.time.wait(60)
                         
-                # take screenshot && write rectangle data to CSV file
-                if (self.screenshot):       
-                    if (rect_name == count):
-                        img_shot += 1
-                        self.save_image(rect_name, img_shot)
-                        self.write_annotations(rect_name, img_shot)
-                    else: # reset image shot count
-                        count = rect_name 
-                        img_shot = 1
-                        self.save_image(rect_name, img_shot)
-                        self.write_annotations(rect_name, img_shot)  
+                # take screenshot && write rectangle data to CSV file   
+                if (rect_name == count):
+                    img_shot += 1
+                    self.save_image(rect_name, img_shot)
+                    self.write_annotations(rect_name, img_shot)
+                else: # reset image shot count
+                    count = rect_name 
+                    img_shot = 1
+                    self.save_image(rect_name, img_shot)
+                    self.write_annotations(rect_name, img_shot)  
       
 if __name__ == "__main__":
     
     manual = input("Do you want to manually generate wireframes? (y/n) ")
     if (manual == "y"):
         myApp = App(True)
-    else:
+    elif (manual == "n"):
         myApp = App(False)
         amount = input("How many wireframes do you want to generate? ")
         shots = input("How many shots per wireframe? ")

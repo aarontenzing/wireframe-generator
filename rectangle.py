@@ -44,6 +44,31 @@ class RectangleMesh:
     def set_translation(self, pos_x, pos_y , pos_z):
         self.position = np.array((pos_x, pos_y, pos_z), dtype=np.float32)
     
+    def translate(self, direction, step):
+        
+        if (direction == 'reset'):
+            self.position = np.array((0,0,0), dtype=np.float32)
+        
+        elif (direction == 'up'):
+            self.position[1] += step
+            
+        elif (direction == 'down'):
+            self.position[1] -= step
+            
+        elif (direction == 'left'):
+            self.position[0] -= step
+            
+        elif (direction == 'right'):
+            self.position[0] += step
+            
+        elif (direction == 'forward'):
+            self.position[2] += step
+        
+        elif (direction == 'backward'):
+            self.position[2] -= step
+        
+        print('Position: ', self.position)
+    
     def set_rotation(self, rot_x, rot_y, rot_z):
         self.eulers = np.array((rot_x, rot_y, rot_z), dtype=np.float32)
 
@@ -62,8 +87,8 @@ class RectangleMesh:
         glRotatef(self.eulers[1], 0, 1, 0)
         glRotatef(self.eulers[2], 0, 0, 1) 
         
-        glEnable(GL_LINE_SMOOTH)  # Enable line smoothing
-        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)  # Use the highest quality for line smoothing
+        #glEnable(GL_LINE_SMOOTH)  # Enable line smoothing
+        #glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)  # Use the highest quality for line smoothing
         glLineWidth(2)
         
         glBegin(GL_LINES)
