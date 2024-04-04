@@ -53,7 +53,7 @@ class App:
         # draw wired rectangle
         glMatrixMode(GL_MODELVIEW) # activate modelview matrix
         gluLookAt(0, 0, -15, 0, 0, 0, 0, 1,0) # set camera position (eye, center, up)
-        self.rectangle = RectangleMesh(random.uniform(0.1,5), random.uniform(0.1,5), random.uniform(0.1,5), [0,0,0], [0,0,0]) 
+        self.rectangle = RectangleMesh(3, 3, 3, [0,0,0], [0,0,0]) # create rectangle 1-3
         self.rectangle.draw_wired_rect()
         
         if (manual):
@@ -89,16 +89,16 @@ class App:
                         self.rectangle.translate('backward', step)     
                              
                     if (event.key == K_UP):
-                        self.rectangle.translate('up', step)
+                        self.rectangle.set_translation(0, 4, 0)
 
                     if (event.key == K_DOWN):
-                        self.rectangle.translate('down', step)
+                        self.rectangle.set_translation(3, 0, 0)
                         
                     if (event.key == K_RIGHT):
-                        self.rectangle.translate('left', step)
+                        self.rectangle.set_translation(3, 0, 0)
                     
                     if (event.key == K_LEFT):
-                        self.rectangle.translate('right', step)
+                        self.rectangle.set_translation(0, -3, 0)
                     
                     if (event.key == K_u):
                         if (step < 0.1):
@@ -118,7 +118,7 @@ class App:
                     if (event.key == K_SPACE):
                         # random position of rectangle
                         self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
-                        self.rectangle.set_translation(random.uniform(-4,4), random.uniform(0,4), 0)
+                        self.rectangle.set_translation(random.uniform(-3,3), random.uniform(0,4), 0)
                         self.rectangle.draw_wired_rect()
                         pg.time.wait(60) # wait 60ms till complete the drawing
                         
@@ -143,7 +143,7 @@ class App:
                         print("delete rectangle...")
                         del self.rectangle
                         # new size of rectangle
-                        self.rectangle = RectangleMesh(random.uniform(1,5), random.uniform(1,5), random.uniform(1,5), [0,0,0], [0,0,0])   
+                        self.rectangle = RectangleMesh(random.uniform(2,5), random.uniform(2,5), random.uniform(2,5), [0,0,0], [0,0,0])   
                         print("created rectangle: ", self.rectangle.width, self.rectangle.height, self.rectangle.depth)
                         
                 # --- Drawing the scene --- #
@@ -173,7 +173,7 @@ class App:
         image = pg.image.frombuffer(pixels, (self.display[0], self.display[1]), 'RGB') # read pixels from the OpenGL buffer
         #image = pg.transform.flip(image, False, True) # flip
         #name = "wireframes\\img" + str(rect_name) + "_" + str(img_shot) + ".png"
-        name = os.path.join(self.wireframes_dir, f"img{rect_name}_{img_shot}.png")
+        name = os.path.join(self.wireframes_dir, f"img{rect_name}_{img_shot}.jpg")
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
         
     def draw_axes(self):
@@ -241,13 +241,13 @@ class App:
         img_shot = 0 # counts how many screenshots were taken
         for i in range(amount):
             del self.rectangle
-            self.rectangle = RectangleMesh(random.uniform(1,5), random.uniform(1,5), random.uniform(1,5), [0,0,0], [0,0,0])   
+            self.rectangle = RectangleMesh(random.uniform(1,3), random.uniform(1,3), random.uniform(1,3), [0,0,0], [0,0,0])   
             rect_name += 1       
             print("created rectangle", rect_name)
             for j in range(shots):
                 # random position of rectangle
                 self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
-                self.rectangle.set_translation(random.uniform(-4,4), random.uniform(0,4), 0)
+                self.rectangle.set_translation(random.uniform(-3,3), random.uniform(0,4), 0)
                 self.rectangle.draw_wired_rect()
                 pg.time.wait(60)
                         
@@ -263,7 +263,6 @@ class App:
                     self.write_annotations(rect_name, img_shot)  
       
 if __name__ == "__main__":
-    
     manual = input("Do you want to manually generate wireframes? (y/n) ")
     if (manual == "y"):
         myApp = App(True)
