@@ -241,7 +241,7 @@ class App:
         img_shot = 0 # counts how many screenshots were taken
         for i in range(amount):
             del self.rectangle
-            self.rectangle = RectangleMesh(random.uniform(1,3), random.uniform(1,3), random.uniform(1,3), [0,0,0], [0,0,0])   
+            self.rectangle = RectangleMesh(random.uniform(2,4), random.uniform(2,4), random.uniform(2,4), [0,0,0], [0,0,0])   
             rect_name += 1       
             print("created rectangle", rect_name)
             for j in range(shots):
