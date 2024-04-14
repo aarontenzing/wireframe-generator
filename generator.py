@@ -173,7 +173,7 @@ class App:
         image = pg.image.frombuffer(pixels, (self.display[0], self.display[1]), 'RGB') # read pixels from the OpenGL buffer
         #image = pg.transform.flip(image, False, True) # flip
         #name = "wireframes\\img" + str(rect_name) + "_" + str(img_shot) + ".png"
-        name = os.path.join(self.wireframes_dir, f"img{rect_name}_{img_shot}.jpg")
+        name = os.path.join(self.wireframes_dir, f"{rect_name}_{img_shot}.jpg")
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
         
     def draw_axes(self):
