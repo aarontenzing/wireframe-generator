@@ -163,9 +163,9 @@ class App:
         pg.quit()
     
     def write_annotations(self, rect_name, img_shot):
-        wc, pc, center = self.get_annotations(self.rectangle.modelview, self.projectionmatrix, glGetIntegerv(GL_VIEWPORT)) # calculate annotation
+        pc, wc = self.get_annotations(self.rectangle.modelview, self.projectionmatrix, glGetIntegerv(GL_VIEWPORT)) # calculate annotation
         valid = self.object_on_screen(pc)  # check if rectangle valid
-        write_json(rect_name, img_shot, self.rectangle.get_norm_dim(),  wc, pc, center, valid) # write to json
+        write_json(rect_name, img_shot, self.rectangle.get_dimensions(),  pc, wc, valid) # write to json
     
     def save_image(self, rect_name, img_shot):
         print("taking screenshot...")
@@ -205,23 +205,23 @@ class App:
         # Calculate world and pixel cords of vertices rectangle
         world_coordinates = []
         pixel_coordinates = []
-        center = []
+    
         for vertex in self.rectangle.vertices:
             x_screen, y_screen, z =  gluProject(vertex[0], vertex[1], vertex[2], model_view, projection, viewport)
             pixel_coordinates.append((int(x_screen),int(y_screen)))
             x_world, y_world, z_world = gluUnProject( x_screen, y_screen, 0, model_view, projection, viewport)
             world_coordinates.append((x_world, y_world, z_world))
         
-        #print("pixel coordinates: ",pixel_coordinates)
-        #print("world coordinates: ",world_coordinates)
+        # print("pixel coordinates: ",pixel_coordinates)
+        # print("world coordinates: ",world_coordinates)
         
         # Calculate center
-        x_screen, y_screen, z = gluProject(0, 0, 0, model_view, projection, viewport)
+        x_screen, y_screen, _ = gluProject(0, 0, 0, model_view, projection, viewport)
         x_world, y_world, z_world = gluUnProject( x_screen, y_screen, 0, model_view, projection, viewport)
-        center.append((x_world, y_world, z_world))
-        center.append((int(x_screen), int(y_screen)))
+        world_coordinates.append((x_world, y_world, z_world))
+        pixel_coordinates.append((int(x_screen), int(y_screen)))
         
-        return world_coordinates, pixel_coordinates, center
+        return pixel_coordinates, world_coordinates
 
     def object_on_screen(self, projection_coordinates):
         outside = 0
@@ -263,7 +263,8 @@ class App:
                     self.write_annotations(rect_name, img_shot)  
       
 if __name__ == "__main__":
-    manual = input("Do you want to manually generate wireframes? (y/n) ")
+    # manual = input("Do you want to manually generate wireframes? (y/n) ")
+    manual = "y"
     if (manual == "y"):
         myApp = App(True)
     elif (manual == "n"):
@@ -271,4 +272,5 @@ if __name__ == "__main__":
         amount = input("How many wireframes do you want to generate? ")
         shots = input("How many shots per wireframe? ")
         myApp.generate_random_rectangle(int(amount), int(shots))
+        print("Wireframes generated successfully!")
         

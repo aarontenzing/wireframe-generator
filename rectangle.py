@@ -142,6 +142,9 @@ class RectangleMesh:
         
         glPopMatrix()
 
+    def get_dimensions(self):
+        return [self.width, self.height, self.depth]
+
     def get_norm_dim(self):
         # normalize dimensions
         w = self.width / self.height
