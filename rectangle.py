@@ -63,10 +63,10 @@ class RectangleMesh:
             self.position[1] -= step
             
         elif (direction == 'left'):
-            self.position[0] -= step
+            self.position[0] += step
             
         elif (direction == 'right'):
-            self.position[0] += step
+            self.position[0] -= step
             
         elif (direction == 'forward'):
             self.position[2] += step
@@ -82,6 +82,7 @@ class RectangleMesh:
     def draw_wired_rect(self):
         
         glMatrixMode(GL_MODELVIEW)
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glEnable(GL_DEPTH_TEST)
         glPushMatrix() 
@@ -145,8 +146,8 @@ class RectangleMesh:
         glEnd()
         
         self.modelview = glGetDoublev(GL_MODELVIEW_MATRIX) # save the modelview matrix 
+        
         glPopMatrix()
-
 
     def get_world_coordinates(self):
         # Compute world coordinates for each vertex
@@ -155,10 +156,3 @@ class RectangleMesh:
 
     def get_dimensions(self):
         return [self.width, self.height, self.depth]
-
-    def get_norm_dim(self):
-        # normalize dimensions
-        w = self.width / self.height
-        h = 1
-        d = self.depth / self.height
-        return [w,h,d]

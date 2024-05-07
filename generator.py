@@ -34,7 +34,7 @@ class App:
             
         pg.display.set_icon(pg.image.load(icon))    
             
-        # Clearing directory
+        # clearing directory
         for file_name in os.listdir(self.wireframes_dir):
             file_path = os.path.join(self.wireframes_dir, file_name)
             try:
@@ -45,13 +45,19 @@ class App:
         
         # initialize OpenGL
         glClearColor(0,0,0,1)
+        
         glMatrixMode(GL_PROJECTION) # activate projection matrix
+        
         gluPerspective(45, self.display[0]/self.display[1], 0.1, 100)
         self.projectionmatrix = glGetDoublev(GL_PROJECTION_MATRIX)
+        print("Projection matrix: \n", self.projectionmatrix)
+        
+        glMatrixMode(GL_MODELVIEW) # activate modelview matrix
+        
+        gluLookAt(0, 0, -15, 0, 0, 0, 0, 1, 0) # set camera position (eye, center, up)
+        print("ModelView matrix: \n", glGetDoublev(GL_MODELVIEW_MATRIX))
         
         # draw wired rectangle
-        glMatrixMode(GL_MODELVIEW) # activate modelview matrix
-        gluLookAt(0, 0, -15, 0, 0, 0, 0, 1,0) # set camera position (eye, center, up)
         self.rectangle = RectangleMesh(3, 3, 3, [0,0,0], [0,0,0]) # create rectangle 1-3
         self.rectangle.draw_wired_rect()
         
@@ -92,11 +98,16 @@ class App:
                         self.rectangle.translate('down', step)  
                         
                     if (event.key == K_RIGHT):
-                        self.rectangle.translate('right', step)  
+                        self.rectangle.translate('right', step)
                     
                     if (event.key == K_LEFT):
-                        self.rectangle.translate('left', step)  
+                        self.rectangle.translate('left', step)    
                     
+                    if (event.key == K_ESCAPE):
+                        print("Coordinates vertices: \n", self.rectangle.get_world_coordinates())
+                        print("modelview matrix: \n", self.rectangle.modelview)
+                        print("projection matrix: \n", glGetDoublev(GL_PROJECTION_MATRIX))
+
                     if (event.key == K_u):
                         if (step < 0.1):
                             step *= 2
@@ -117,10 +128,10 @@ class App:
                         self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
                         self.rectangle.set_translation(random.uniform(-3,3), random.uniform(0,4), 0)
                         self.rectangle.draw_wired_rect()
-                        pg.time.wait(60) # wait 60ms till complete the drawing
+                        pg.time.wait(10) # wait 10ms till complete the drawing
                         
-                        print(f"random rotation: {self.rectangle.eulers}")
-                        print(f"random translation: {self.rectangle.position}")
+                        print(f"Random rotation: {self.rectangle.eulers}")
+                        print(f"Random translation: {self.rectangle.position}")
                         
                         # take screenshot && write rectangle data to CSV file
                         if (self.screenshot):
@@ -129,11 +140,10 @@ class App:
                             rect_id += 1 
 
                     if (event.key == K_RETURN):
-                        print("delete rectangle...")
+                        print("Delete rectangle...")
                         del self.rectangle
-                        # new size of rectangle
-                        self.rectangle = RectangleMesh(random.uniform(2,5), random.uniform(2,5), random.uniform(2,5), [0,0,0], [0,0,0])   
-                        print("created rectangle: ", self.rectangle.width, self.rectangle.height, self.rectangle.depth)
+                        self.rectangle = RectangleMesh(random.uniform(1,4), random.uniform(1,4), random.uniform(1,4), [0,0,0], [0,0,0])   
+                        print("Created rectangle: ", self.rectangle.width, self.rectangle.height, self.rectangle.depth)
                         
                 # --- Drawing the scene --- #
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -141,7 +151,25 @@ class App:
                 self.rectangle.draw_wired_rect()
                 
                 if (self.axes):
-                    self.draw_axes()
+                
+                    glBegin(GL_LINES)
+
+                    # X Axis in Red
+                    glColor3f(1, 0, 0)
+                    glVertex3f(0, 0, 0)
+                    glVertex3f(5, 0, 0)
+
+                    # Y Axis in Green
+                    glColor3f(0, 1, 0)
+                    glVertex3f(0, 0, 0)
+                    glVertex3f(0, 5, 0)
+
+                    # Z Axis in Blue
+                    glColor3f(0, 0, 1)
+                    glVertex3f(0, 0, 0)
+                    glVertex3f(0, 0, 5)
+
+                    glEnd()
                     
                 pg.display.flip()
                 pg.time.wait(60)
@@ -154,44 +182,18 @@ class App:
     def write_annotations(self, rect_id):
         pc, wc = self.get_annotations(self.rectangle.modelview, self.projectionmatrix, glGetIntegerv(GL_VIEWPORT)) # calculate annotation
         valid = self.object_on_screen(pc)  # check if rectangle valid
-        # write_json(rect_id, img_shot, self.rectangle.get_dimensions(),  pc, wc, valid) # write to json
         dimensions = self.rectangle.get_dimensions()
-        dimensions = sorted(dimensions)
         write_json(rect_id, dimensions, pc, wc, valid)
     
     def save_image(self, rect_id):
         print("Taking screenshot...")
         pixels = glReadPixels(0, 0, self.display[0], self.display[1], GL_RGB, GL_UNSIGNED_BYTE) 
         image = pg.image.frombuffer(pixels, (self.display[0], self.display[1]), 'RGB') # read pixels from the OpenGL buffer
-        #image = pg.transform.flip(image, False, True) # flip
-        #name = "wireframes\\img" + str(rect_id) + "_" + str(img_shot) + ".png"
+        # image = pg.transform.flip(image, True, False) # flip
+        # name = "wireframes\\img" + str(rect_id) + "_" + str(img_shot) + ".png"
         name = os.path.join(self.wireframes_dir, f"{rect_id}.jpg")
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
-        
-    def draw_axes(self):
-        glPushMatrix()
-        glTranslatef(0,0,-15)
-        # X axis (red)
-        glBegin(GL_LINES)
-        glColor3f(1, 0, 0)
-        glVertex3f(0, 0, 0)
-        glVertex3f(5, 0, 0)
-        glEnd()
-
-        # Y axis (green)
-        glBegin(GL_LINES)
-        glColor3f(0, 1, 0)
-        glVertex3f(0, 0, 0)
-        glVertex3f(0, 5, 0)
-        glEnd()
-
-        # Z axis (blue)
-        glBegin(GL_LINES)
-        glColor3f(0, 0, 1)
-        glVertex3f(0, 0, 0)
-        glVertex3f(0, 0, 5)
-        glEnd()   
-        glPopMatrix()   
+          
     
     def get_annotations(self, model_view, projection, viewport):
         # Calculate world and pixel cords of vertices rectangle
@@ -201,10 +203,6 @@ class App:
         for vertex in self.rectangle.vertices:
             x_screen, y_screen, z =  gluProject(vertex[0], vertex[1], vertex[2], model_view, projection, viewport)
             pixel_coordinates.append((int(x_screen),int(y_screen)))
-            
-            # depth = glReadPixels(x_screen, y_screen, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]  # Ensure to access the depth value correctly
-            # x_world, y_world, z_world = gluUnProject(x_screen, y_screen, depth, model_view, projection, viewport)
-            # world_coordinates.append((x_world, y_world, z_world))
         
         # print("pixel coordinates: ",pixel_coordinates)
         # print("world coordinates: ",self.rectangle.get_world_coordinates())
@@ -213,10 +211,6 @@ class App:
         # Calculate center
         x_screen, y_screen, _ = gluProject(0, 0, 0, model_view, projection, viewport)
         pixel_coordinates.append((int(x_screen), int(y_screen)))
-        
-        # depth = glReadPixels(x_screen, y_screen, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]  # Ensure to access the depth value correctly
-        # x_world, y_world, z_world = gluUnProject( x_screen, y_screen, depth, model_view, projection, viewport)
-        # world_coordinates.append((x_world, y_world, z_world))
         
         return pixel_coordinates, world_coordinates
 
@@ -243,7 +237,7 @@ class App:
                 self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
                 self.rectangle.set_translation(random.uniform(-3,3), random.uniform(0,4), 0)
                 self.rectangle.draw_wired_rect()
-                pg.time.wait(60)
+                pg.time.wait(10)
                         
                 # take screenshot && write rectangle data to CSV file           
                 self.save_image(rect_id)
@@ -251,7 +245,9 @@ class App:
                 rect_id += 1
       
 if __name__ == "__main__":
+    
     manual = input("Do you want to manually generate wireframes? (y/n) ")
+   
     if (manual == "y"):
         myApp = App(True)
     elif (manual == "n"):
