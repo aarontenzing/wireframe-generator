@@ -40,6 +40,13 @@ class RectangleMesh:
             (2, 6),
             (3, 7)
         )
+
+    def transform_vertex(self, vertex, matrix):
+        # Convert vertex to homogeneous coordinates (x, y, z, 1)
+        vertex_homogeneous = np.array(vertex + (1,))
+        # Transform the vertex using the modelview matrix
+        transformed_vertex = matrix @ vertex_homogeneous
+        return list(transformed_vertex[:3])
     
     def set_translation(self, pos_x, pos_y , pos_z):
         self.position = np.array((pos_x, pos_y, pos_z), dtype=np.float32)
@@ -75,14 +82,11 @@ class RectangleMesh:
     def draw_wired_rect(self):
         
         glMatrixMode(GL_MODELVIEW)
-        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        
         glEnable(GL_DEPTH_TEST)
-        
         glPushMatrix() 
     
-        glTranslatef(self.position[0], self.position[1], self.position[2])
+        glTranslatef(*self.position)
         glRotatef(self.eulers[0], 1, 0, 0)
         glRotatef(self.eulers[1], 0, 1, 0)
         glRotatef(self.eulers[2], 0, 0, 1) 
@@ -101,6 +105,7 @@ class RectangleMesh:
         glColor3f(0.0, 0.0, 0.0)  # solid rectangles in black, to only show the visible wireframe ribbons
     
         glBegin(GL_QUADS)
+        
         # front plane
         glVertex3f(self.width, self.height, self.depth) # front top right
         glVertex3f(-self.width, self.height, self.depth) # front top left
@@ -136,11 +141,17 @@ class RectangleMesh:
         glVertex3f(self.width, -self.height, self.depth) # front bottom right
         glVertex3f(self.width, -self.height, -self.depth) # back bottom right
         glVertex3f(-self.width, -self.height, -self.depth) # back bottom left
+        
         glEnd()
         
         self.modelview = glGetDoublev(GL_MODELVIEW_MATRIX) # save the modelview matrix 
-        
         glPopMatrix()
+
+
+    def get_world_coordinates(self):
+        # Compute world coordinates for each vertex
+        self.world_vertices = [self.transform_vertex(v, self.modelview) for v in self.vertices]
+        return self.world_vertices
 
     def get_dimensions(self):
         return [self.width, self.height, self.depth]

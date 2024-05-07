@@ -17,7 +17,6 @@ class App:
         self.screen = pg.display.set_mode(self.display, pg.OPENGL|pg.DOUBLEBUF) # tell pygame we run OPENGL & DOUBLEBUFFERING, one frame vis & one drawing
         pg.display.set_caption("Wireframe generator")
         
-        
         # activation variables 
         self.axes = 0
         self.screenshot = 1
@@ -60,9 +59,7 @@ class App:
             self.mainLoop()
 
     def mainLoop(self):
-        rect_name = 1  
-        count = 1 # counts the rectangle that is been shown
-        img_shot = 0 # counts how many screenshots were taken
+        rect_id = 0
         step = 1
         running = True
         while(running):
@@ -89,16 +86,16 @@ class App:
                         self.rectangle.translate('backward', step)     
                              
                     if (event.key == K_UP):
-                        self.rectangle.set_translation(0, 4, 0)
+                        self.rectangle.translate('up', step)  
 
                     if (event.key == K_DOWN):
-                        self.rectangle.set_translation(3, 0, 0)
+                        self.rectangle.translate('down', step)  
                         
                     if (event.key == K_RIGHT):
-                        self.rectangle.set_translation(3, 0, 0)
+                        self.rectangle.translate('right', step)  
                     
                     if (event.key == K_LEFT):
-                        self.rectangle.set_translation(0, -3, 0)
+                        self.rectangle.translate('left', step)  
                     
                     if (event.key == K_u):
                         if (step < 0.1):
@@ -127,19 +124,11 @@ class App:
                         
                         # take screenshot && write rectangle data to CSV file
                         if (self.screenshot):
-                            
-                            if (rect_name == count):
-                                img_shot += 1
-                                self.save_image(rect_name, img_shot)
-                                self.write_annotations(rect_name, img_shot)
-                            else: # reset image shot count
-                                count = rect_name 
-                                img_shot = 1
-                                self.save_image(rect_name, img_shot)
-                                self.write_annotations(rect_name, img_shot)       
+                            self.save_image(rect_id)
+                            self.write_annotations(rect_id)
+                            rect_id += 1 
 
                     if (event.key == K_RETURN):
-                        rect_name += 1 # counts the rectangle that is been shown
                         print("delete rectangle...")
                         del self.rectangle
                         # new size of rectangle
@@ -162,18 +151,21 @@ class App:
     def quit(self):
         pg.quit()
     
-    def write_annotations(self, rect_name, img_shot):
+    def write_annotations(self, rect_id):
         pc, wc = self.get_annotations(self.rectangle.modelview, self.projectionmatrix, glGetIntegerv(GL_VIEWPORT)) # calculate annotation
         valid = self.object_on_screen(pc)  # check if rectangle valid
-        write_json(rect_name, img_shot, self.rectangle.get_dimensions(),  pc, wc, valid) # write to json
+        # write_json(rect_id, img_shot, self.rectangle.get_dimensions(),  pc, wc, valid) # write to json
+        dimensions = self.rectangle.get_dimensions()
+        dimensions = sorted(dimensions)
+        write_json(rect_id, dimensions, pc, wc, valid)
     
-    def save_image(self, rect_name, img_shot):
-        print("taking screenshot...")
+    def save_image(self, rect_id):
+        print("Taking screenshot...")
         pixels = glReadPixels(0, 0, self.display[0], self.display[1], GL_RGB, GL_UNSIGNED_BYTE) 
         image = pg.image.frombuffer(pixels, (self.display[0], self.display[1]), 'RGB') # read pixels from the OpenGL buffer
         #image = pg.transform.flip(image, False, True) # flip
-        #name = "wireframes\\img" + str(rect_name) + "_" + str(img_shot) + ".png"
-        name = os.path.join(self.wireframes_dir, f"{rect_name}_{img_shot}.jpg")
+        #name = "wireframes\\img" + str(rect_id) + "_" + str(img_shot) + ".png"
+        name = os.path.join(self.wireframes_dir, f"{rect_id}.jpg")
         pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
         
     def draw_axes(self):
@@ -209,17 +201,22 @@ class App:
         for vertex in self.rectangle.vertices:
             x_screen, y_screen, z =  gluProject(vertex[0], vertex[1], vertex[2], model_view, projection, viewport)
             pixel_coordinates.append((int(x_screen),int(y_screen)))
-            x_world, y_world, z_world = gluUnProject( x_screen, y_screen, 0, model_view, projection, viewport)
-            world_coordinates.append((x_world, y_world, z_world))
+            
+            # depth = glReadPixels(x_screen, y_screen, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]  # Ensure to access the depth value correctly
+            # x_world, y_world, z_world = gluUnProject(x_screen, y_screen, depth, model_view, projection, viewport)
+            # world_coordinates.append((x_world, y_world, z_world))
         
         # print("pixel coordinates: ",pixel_coordinates)
-        # print("world coordinates: ",world_coordinates)
+        # print("world coordinates: ",self.rectangle.get_world_coordinates())
+        world_coordinates = self.rectangle.get_world_coordinates()
         
         # Calculate center
         x_screen, y_screen, _ = gluProject(0, 0, 0, model_view, projection, viewport)
-        x_world, y_world, z_world = gluUnProject( x_screen, y_screen, 0, model_view, projection, viewport)
-        world_coordinates.append((x_world, y_world, z_world))
         pixel_coordinates.append((int(x_screen), int(y_screen)))
+        
+        # depth = glReadPixels(x_screen, y_screen, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]  # Ensure to access the depth value correctly
+        # x_world, y_world, z_world = gluUnProject( x_screen, y_screen, depth, model_view, projection, viewport)
+        # world_coordinates.append((x_world, y_world, z_world))
         
         return pixel_coordinates, world_coordinates
 
@@ -236,14 +233,11 @@ class App:
         return "true"        
     
     def generate_random_rectangle(self, amount, shots):
-        rect_name = 0  
-        count = 1 # counts the rectangle that is been shown
-        img_shot = 0 # counts how many screenshots were taken
+        rect_id = 0  
         for i in range(amount):
             del self.rectangle
-            self.rectangle = RectangleMesh(random.uniform(2,4), random.uniform(2,4), random.uniform(2,4), [0,0,0], [0,0,0])   
-            rect_name += 1       
-            print("created rectangle", rect_name)
+            self.rectangle = RectangleMesh(random.uniform(2,4), random.uniform(2,4), random.uniform(2,4), [0,0,0], [0,0,0])       
+            print("created rectangle", rect_id)
             for j in range(shots):
                 # random position of rectangle
                 self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
@@ -251,20 +245,13 @@ class App:
                 self.rectangle.draw_wired_rect()
                 pg.time.wait(60)
                         
-                # take screenshot && write rectangle data to CSV file   
-                if (rect_name == count):
-                    img_shot += 1
-                    self.save_image(rect_name, img_shot)
-                    self.write_annotations(rect_name, img_shot)
-                else: # reset image shot count
-                    count = rect_name 
-                    img_shot = 1
-                    self.save_image(rect_name, img_shot)
-                    self.write_annotations(rect_name, img_shot)  
+                # take screenshot && write rectangle data to CSV file           
+                self.save_image(rect_id)
+                self.write_annotations(rect_id)  
+                rect_id += 1
       
 if __name__ == "__main__":
-    # manual = input("Do you want to manually generate wireframes? (y/n) ")
-    manual = "y"
+    manual = input("Do you want to manually generate wireframes? (y/n) ")
     if (manual == "y"):
         myApp = App(True)
     elif (manual == "n"):
