@@ -231,7 +231,7 @@ class App:
         for i in range(amount):
             del self.rectangle
             self.rectangle = RectangleMesh(random.uniform(2,4), random.uniform(2,4), random.uniform(2,4), [0,0,0], [0,0,0])       
-            print("created rectangle", rect_id)
+            print("created rectangle")
             for j in range(shots):
                 # random position of rectangle
                 self.rectangle.set_rotation(random.uniform(0,360), random.uniform(0,360), random.uniform(0,360))
@@ -242,6 +242,7 @@ class App:
                 # take screenshot && write rectangle data to CSV file           
                 self.save_image(rect_id)
                 self.write_annotations(rect_id)  
+                print("Rectangle ", rect_id, " generated successfully!")
                 rect_id += 1
       
 if __name__ == "__main__":
