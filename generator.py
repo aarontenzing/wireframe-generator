@@ -257,4 +257,3 @@ if __name__ == "__main__":
         shots = input("How many shots per wireframe? ")
         myApp.generate_random_rectangle(int(amount), int(shots))
         print("Wireframes generated successfully!")
-        
