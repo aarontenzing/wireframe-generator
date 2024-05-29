@@ -1,7 +1,6 @@
 # Generating wireframes
-- A tool capable of generating wireframe model images on a large scale, and saving their annotations. 
+- A tool capable of generating wireframe images on a large scale, and saving their annotations. 
 - With these wireframes, we can generate controlled stable diffusion images.
-- These synthetic images can then be utilized for fine-tuning our model.
 
 <p align="left" width="100%">
 <img src="example.jpg">
