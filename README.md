@@ -1,6 +1,5 @@
 # Generating wireframes
 - A tool capable of generating wireframe images on a large scale, and saving their annotations
-
 *Purpose: Wireframes can then be used to generate controlled stable diffusion images*
 
 <p align="left" width="100%">
@@ -8,6 +7,7 @@
 </p>
 
 # How to run this tool?
+This tool was created using Python 3.11.2
     1. pip install -r requirements.txt
     2. python generator.py 
   
@@ -25,7 +25,3 @@ There are two ways of using this tool:
 ## Automatic Controls
 - Specify the number of wireframes you want to generate.
 - Define how screenshots should be taken for these wireframes in different positions.
-
-# Running the tool
-
-This sofware was created on Windows using Python 3.11.2
