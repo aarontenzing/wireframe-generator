@@ -192,8 +192,7 @@ class App:
         # image = pg.transform.flip(image, True, False) # flip
         # name = "wireframes\\img" + str(rect_id) + "_" + str(img_shot) + ".png"
         name = os.path.join(self.wireframes_dir, f"{rect_id}.jpg")
-        pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()
-          
+        pg.image.save(image, name) # It then converts those pixels into a Pygame surface and saves it using pygame.image.save()         
     
     def get_annotations(self, model_view, projection, viewport):
         # Calculate world and pixel cords of vertices rectangle
