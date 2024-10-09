@@ -19,7 +19,7 @@ To choose manual mode, type "y" and press Enter.
 ## Manual Controls
 
 - Enter: Generates a new wireframe with a different height, depth, and width.
-- Right-arrow-key: Randomly rotates/translates the current wireframe, takes a screenshot, and writes annotations to a CSV file.
+- Right-arrow-key: Randomly rotates/translates the current wireframe, takes a screenshot, and writes annotations to a JSON file.
 - Key a: Enables drawing the axis.
 - Key s: Enables taking screenshots.
 
